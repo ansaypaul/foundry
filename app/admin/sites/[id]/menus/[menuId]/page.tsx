@@ -1,7 +1,7 @@
 import { getSiteById } from '@/lib/db/queries';
 import { getMenuById } from '@/lib/db/menus-queries';
 import { notFound } from 'next/navigation';
-import SiteMenuForm from '../new/SiteMenuForm';
+import ImprovedMenuForm from '../new/ImprovedMenuForm';
 
 interface PageProps {
   params: Promise<{ id: string; menuId: string }>;
@@ -25,7 +25,7 @@ export default async function EditMenuPage({ params }: PageProps) {
         <p className="text-gray-400 mt-2">Éditer {menu.name}</p>
       </div>
 
-      <SiteMenuForm siteId={id} menu={menu} />
+      <ImprovedMenuForm siteId={id} menu={menu} />
     </div>
   );
 }

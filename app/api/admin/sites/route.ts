@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSite, getAllSites } from '@/lib/db/queries';
+import { getSupabaseAdmin } from '@/lib/db/client';
 
 export async function GET() {
   try {
@@ -17,7 +18,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, theme_key = 'default', status = 'active' } = body;
+    const { name, theme_id = null, status = 'active' } = body;
 
     // Validation
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
@@ -27,13 +28,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const supabase = getSupabaseAdmin();
+    
     // Créer le site
-    const site = await createSite({
-      name: name.trim(),
-      theme_key,
-      status,
-      theme_config: {},
-    });
+    const { data: site, error } = await supabase
+      .from('sites')
+      .insert({
+        name: name.trim(),
+        theme_id,
+        status,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
 
     return NextResponse.json({ site }, { status: 201 });
   } catch (error) {

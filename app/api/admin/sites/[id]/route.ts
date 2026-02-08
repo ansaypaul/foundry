@@ -57,3 +57,70 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest, { params }: RouteParams) {
+  try {
+    const { id } = await params;
+
+    // Vérifier que le site existe
+    const existingSite = await getSiteById(id);
+    if (!existingSite) {
+      return NextResponse.json(
+        { error: 'Site non trouvé' },
+        { status: 404 }
+      );
+    }
+
+    const supabase = getSupabaseAdmin();
+
+    // Récupérer d'abord les IDs de contenu pour supprimer les relations
+    const { data: contentIds } = await supabase
+      .from('content')
+      .select('id')
+      .eq('site_id', id);
+
+    // Supprimer les relations de termes
+    if (contentIds && contentIds.length > 0) {
+      await supabase
+        .from('term_relations')
+        .delete()
+        .in('content_id', contentIds.map(c => c.id));
+    }
+
+    // Supprimer les memberships
+    await supabase.from('memberships').delete().eq('site_id', id);
+
+    // Supprimer le contenu
+    await supabase.from('content').delete().eq('site_id', id);
+
+    // Supprimer les termes
+    await supabase.from('terms').delete().eq('site_id', id);
+
+    // Supprimer les médias
+    await supabase.from('media').delete().eq('site_id', id);
+
+    // Supprimer les menus
+    await supabase.from('menus').delete().eq('site_id', id);
+
+    // Supprimer les domaines
+    await supabase.from('domains').delete().eq('site_id', id);
+
+    // Supprimer le site
+    const { error } = await supabase
+      .from('sites')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw error;
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting site:', error);
+    return NextResponse.json(
+      { error: 'Erreur lors de la suppression du site' },
+      { status: 500 }
+    );
+  }
+}

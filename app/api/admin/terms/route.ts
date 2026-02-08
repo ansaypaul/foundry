@@ -5,6 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const siteId = searchParams.get('site_id');
+    const type = searchParams.get('type');
 
     if (!siteId) {
       return NextResponse.json(
@@ -14,11 +15,17 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = getSupabaseAdmin();
-    const { data: terms } = await supabase
+    let query = supabase
       .from('terms')
       .select('*')
-      .eq('site_id', siteId)
-      .order('name');
+      .eq('site_id', siteId);
+
+    // Filtrer par type si fourni
+    if (type) {
+      query = query.eq('type', type);
+    }
+
+    const { data: terms } = await query.order('name');
 
     return NextResponse.json({ terms: terms || [] });
   } catch (error) {

@@ -39,7 +39,10 @@ export default function AdminLayoutClient({
   const pathname = usePathname();
   
   // Ne pas afficher le header si on est dans l'admin d'un site spécifique
-  const isSiteAdmin = pathname.startsWith('/admin/sites/') && pathname.split('/').length > 3;
+  // MAIS afficher le header pour /admin/sites/new
+  const isSiteAdmin = pathname.startsWith('/admin/sites/') && 
+                      pathname !== '/admin/sites/new' &&
+                      pathname.split('/').length > 3;
 
   if (isSiteAdmin) {
     return <>{children}</>;

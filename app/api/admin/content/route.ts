@@ -1,5 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createContent } from '@/lib/db/queries';
+import { getSupabaseAdmin } from '@/lib/db/client';
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const siteId = searchParams.get('site_id');
+    const type = searchParams.get('type');
+    
+    if (!siteId) {
+      return NextResponse.json(
+        { error: 'site_id est requis' },
+        { status: 400 }
+      );
+    }
+
+    const supabase = getSupabaseAdmin();
+    let query = supabase
+      .from('content')
+      .select('id, title, slug, type, status')
+      .eq('site_id', siteId)
+      .order('created_at', { ascending: false });
+
+    if (type) {
+      query = query.eq('type', type);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      throw error;
+    }
+
+    return NextResponse.json(data || []);
+  } catch (error: any) {
+    console.error('Error fetching content:', error);
+    return NextResponse.json(
+      { error: 'Erreur lors de la récupération du contenu' },
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {

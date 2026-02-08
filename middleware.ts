@@ -5,6 +5,13 @@ export async function middleware(request: NextRequest) {
   // Get hostname from headers
   const hostname = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
   
+  // Si on est sur le sous-domaine admin, rediriger vers /admin
+  if (hostname.startsWith('admin.') && !request.nextUrl.pathname.startsWith('/admin')) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/admin${request.nextUrl.pathname}`;
+    return NextResponse.redirect(url);
+  }
+  
   // Vérifier l'authentification pour les routes admin
   if (request.nextUrl.pathname.startsWith('/admin')) {
     const session = request.cookies.get('foundry-session');

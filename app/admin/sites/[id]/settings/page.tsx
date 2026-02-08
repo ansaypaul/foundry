@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/db/client';
 import { notFound } from 'next/navigation';
 import SiteEditForm from '../SiteEditForm';
 import DomainsManager from '../DomainsManager';
+import DeleteSiteButton from './DeleteSiteButton';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -33,6 +34,24 @@ export default async function SiteSettingsPage({ params }: PageProps) {
       <div className="space-y-8">
         <SiteEditForm site={site} />
         <DomainsManager siteId={id} initialDomains={domains || []} />
+        
+        {/* Zone de danger */}
+        <div className="bg-gray-800 rounded-lg border border-red-600/50 p-6">
+          <h3 className="text-lg font-semibold text-red-400 mb-2">Zone de danger</h3>
+          <p className="text-sm text-gray-400 mb-4">
+            Ces actions sont irréversibles. Soyez prudent.
+          </p>
+          
+          <div className="flex items-center justify-between p-4 bg-red-900/10 rounded-lg border border-red-600/30">
+            <div>
+              <h4 className="text-white font-medium mb-1">Supprimer ce site</h4>
+              <p className="text-sm text-gray-400">
+                Supprime définitivement le site et toutes ses données (domaines, contenu, médias, menus).
+              </p>
+            </div>
+            <DeleteSiteButton siteId={id} siteName={site.name} />
+          </div>
+        </div>
       </div>
     </div>
   );

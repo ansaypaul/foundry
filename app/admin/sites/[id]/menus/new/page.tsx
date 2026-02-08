@@ -1,6 +1,6 @@
 import { getSiteById } from '@/lib/db/queries';
 import { notFound } from 'next/navigation';
-import SiteMenuForm from './SiteMenuForm';
+import ImprovedMenuForm from './ImprovedMenuForm';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -21,7 +21,7 @@ export default async function NewMenuPage({ params }: PageProps) {
         <p className="text-gray-400 mt-2">Créer un menu pour {site.name}</p>
       </div>
 
-      <SiteMenuForm siteId={id} />
+      <ImprovedMenuForm siteId={id} />
     </div>
   );
 }
