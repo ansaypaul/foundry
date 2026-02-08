@@ -74,7 +74,7 @@ export default async function SiteAdminLayout({ children, params }: LayoutProps)
         <div className="p-4 border-t border-gray-700 space-y-2">
           {primaryDomain && (
             <a
-              href={`http://${primaryDomain}:3000`}
+              href={primaryDomain.includes('localhost') ? `http://${primaryDomain}:3000` : `https://${primaryDomain}`}
               target="_blank"
               rel="noopener noreferrer"
               className="block w-full px-4 py-2 text-center text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"

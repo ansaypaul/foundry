@@ -1,4 +1,4 @@
-﻿import { getAllSites } from '@/lib/db/queries';
+import { getAllSites } from '@/lib/db/queries';
 import { getSupabaseAdmin } from '@/lib/db/client';
 import { Site } from '@/lib/db/types';
 import Link from 'next/link';
@@ -108,16 +108,22 @@ export default async function SitesPage() {
                   </div>
                   
                   <div className="flex space-x-3 ml-6">
-                    {site.domains && site.domains.length > 0 && (
-                      <a 
-                        href={`http://${site.domains.find(d => d.is_primary)?.hostname || site.domains[0].hostname}:3000`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-4 py-2 text-sm text-green-600 border border-green-300 rounded-lg hover:bg-green-50"
-                      >
-                        Voir le site →
-                      </a>
-                    )}
+                    {site.domains && site.domains.length > 0 && (() => {
+                      const primaryDomain = site.domains.find(d => d.is_primary)?.hostname || site.domains[0].hostname;
+                      const siteUrl = primaryDomain.includes('localhost') 
+                        ? `http://${primaryDomain}:3000` 
+                        : `https://${primaryDomain}`;
+                      return (
+                        <a 
+                          href={siteUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 text-sm text-green-600 border border-green-300 rounded-lg hover:bg-green-50"
+                        >
+                          Voir le site →
+                        </a>
+                      );
+                    })()}
                     <Link 
                       href={`/admin/sites/${site.id}`}
                       className="px-4 py-2 text-sm border border-gray-600 rounded-lg hover:bg-gray-900"

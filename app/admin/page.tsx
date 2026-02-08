@@ -74,16 +74,22 @@ export default async function AdminDashboard() {
                   </p>
                 </div>
                 <div className="flex space-x-3">
-                  {site.domains && site.domains.length > 0 && (
-                    <a 
-                      href={`http://${site.domains.find((d: any) => d.is_primary)?.hostname || site.domains[0].hostname}:3000`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-green-400 hover:text-green-300 transition-colors"
-                    >
-                      Voir →
-                    </a>
-                  )}
+                  {site.domains && site.domains.length > 0 && (() => {
+                    const primaryDomain = site.domains.find((d: any) => d.is_primary)?.hostname || site.domains[0].hostname;
+                    const siteUrl = primaryDomain.includes('localhost') 
+                      ? `http://${primaryDomain}:3000` 
+                      : `https://${primaryDomain}`;
+                    return (
+                      <a 
+                        href={siteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-green-400 hover:text-green-300 transition-colors"
+                      >
+                        Voir →
+                      </a>
+                    );
+                  })()}
                   <Link 
                     href={`/admin/sites/${site.id}`}
                     className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
