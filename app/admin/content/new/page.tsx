@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function NewContentPage() {
+function NewContentForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const typeParam = searchParams.get('type') || 'post';
@@ -248,6 +248,14 @@ export default function NewContentPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function NewContentPage() {
+  return (
+    <Suspense fallback={<div className="text-white p-8">Chargement...</div>}>
+      <NewContentForm />
+    </Suspense>
   );
 }
 

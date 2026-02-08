@@ -23,6 +23,9 @@ export default function ContentEditForm({ content, categories, tags, contentTerm
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [featuredMediaId, setFeaturedMediaId] = useState<string | null>(content.featured_media_id);
+  const [selectedAuthor, setSelectedAuthor] = useState<string>(content.author_id || '');
+  const [authors, setAuthors] = useState<any[]>([]);
+  const [loadingAuthors, setLoadingAuthors] = useState(true);
 
   useEffect(() => {
     const categoryTerm = contentTerms.find((t: any) => t.type === 'category');
@@ -33,6 +36,17 @@ export default function ContentEditForm({ content, categories, tags, contentTerm
     const tagTerms = contentTerms.filter((t: any) => t.type === 'tag');
     setSelectedTags(tagTerms.map((t: any) => t.id));
   }, [contentTerms]);
+
+  useEffect(() => {
+    // Charger les auteurs du site
+    fetch(`/api/admin/sites/${content.site.id}/authors`)
+      .then(res => res.json())
+      .then(data => {
+        setAuthors(data.authors || []);
+        setLoadingAuthors(false);
+      })
+      .catch(() => setLoadingAuthors(false));
+  }, [content.site.id]);
 
   function toggleTag(tagId: string) {
     setSelectedTags(prev => 
@@ -61,6 +75,7 @@ export default function ContentEditForm({ content, categories, tags, contentTerm
           content_html: formData.get('content_html'),
           status: formData.get('status'),
           featured_media_id: featuredMediaId,
+          author_id: selectedAuthor || null,
         }),
       });
 
@@ -236,6 +251,25 @@ export default function ContentEditForm({ content, categories, tags, contentTerm
                 <option value="published">Publié</option>
               </Select>
             </div>
+
+            {/* Auteur */}
+            {!loadingAuthors && authors.length > 0 && (
+              <div className="mt-4">
+                <Label htmlFor="author">Auteur</Label>
+                <Select
+                  id="author"
+                  value={selectedAuthor}
+                  onChange={(e) => setSelectedAuthor(e.target.value)}
+                >
+                  <option value="">Aucun auteur</option>
+                  {authors.map((author) => (
+                    <option key={author.id} value={author.id}>
+                      {author.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            )}
 
             <div className="mt-6 pt-6 border-t border-gray-700 space-y-2">
               <PrimaryButton type="submit" disabled={isSubmitting} className="w-full">

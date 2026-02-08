@@ -9,7 +9,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const body = await request.json();
-    const { title, slug, excerpt, content_html, status, featured_media_id } = body;
+    const { title, slug, excerpt, content_html, status, featured_media_id, author_id } = body;
 
     const supabase = getSupabaseAdmin();
 
@@ -41,6 +41,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (excerpt !== undefined) updates.excerpt = excerpt?.trim() || null;
     if (content_html !== undefined) updates.content_html = content_html?.trim() || null;
     if (featured_media_id !== undefined) updates.featured_media_id = featured_media_id;
+    if (author_id !== undefined) updates.author_id = author_id || null;
     if (status) {
       updates.status = status;
       // Si on publie, ajouter la date de publication

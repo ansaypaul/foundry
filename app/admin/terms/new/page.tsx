@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Input, Textarea, Select, Label, HelperText, FormCard, ErrorMessage, PrimaryButton } from '@/app/admin/components/FormComponents';
 
-export default function NewTermPage() {
+function NewTermForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -165,5 +165,13 @@ export default function NewTermPage() {
         </form>
       </FormCard>
     </div>
+  );
+}
+
+export default function NewTermPage() {
+  return (
+    <Suspense fallback={<div className="text-white p-8">Chargement...</div>}>
+      <NewTermForm />
+    </Suspense>
   );
 }

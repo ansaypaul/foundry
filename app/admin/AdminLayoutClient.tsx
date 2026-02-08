@@ -1,7 +1,35 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useState } from 'react';
+
+function LogoutButton() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
+  async function handleLogout() {
+    setIsLoading(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/login');
+      router.refresh();
+    } catch (error) {
+      console.error('Logout error:', error);
+      setIsLoading(false);
+    }
+  }
+
+  return (
+    <button
+      onClick={handleLogout}
+      disabled={isLoading}
+      className="text-gray-400 hover:text-white transition-colors text-sm disabled:opacity-50"
+    >
+      {isLoading ? 'Déconnexion...' : 'Déconnexion'}
+    </button>
+  );
+}
 
 export default function AdminLayoutClient({
   children,
@@ -48,6 +76,12 @@ export default function AdminLayoutClient({
                   Contenu
                 </Link>
                 <Link 
+                  href="/admin/users" 
+                  className="text-gray-300 hover:text-white transition-colors"
+                >
+                  Utilisateurs
+                </Link>
+                <Link 
                   href="/admin/terms" 
                   className="text-gray-300 hover:text-white transition-colors"
                 >
@@ -67,6 +101,7 @@ export default function AdminLayoutClient({
                 </Link>
               </nav>
             </div>
+            <LogoutButton />
           </div>
         </div>
       </header>

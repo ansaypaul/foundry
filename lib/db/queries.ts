@@ -188,6 +188,7 @@ export async function createContent(content: {
   content_html?: string;
   status?: 'draft' | 'published';
   author_id?: string;
+  featured_media_id?: string;
   published_at?: string;
 }): Promise<Content> {
   const supabase = getSupabaseAdmin();

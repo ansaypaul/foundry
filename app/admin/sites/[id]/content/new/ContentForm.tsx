@@ -19,16 +19,22 @@ export default function ContentForm({ siteId, type, returnUrl }: Props) {
   const [selectedMediaId, setSelectedMediaId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedAuthor, setSelectedAuthor] = useState<string>('');
   const [categories, setCategories] = useState<any[]>([]);
   const [tags, setTags] = useState<any[]>([]);
+  const [authors, setAuthors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/admin/terms?site_id=${siteId}`)
-      .then(res => res.json())
-      .then(data => {
-        setCategories(data.terms?.filter((t: any) => t.type === 'category') || []);
-        setTags(data.terms?.filter((t: any) => t.type === 'tag') || []);
+    // Charger les termes et les auteurs
+    Promise.all([
+      fetch(`/api/admin/terms?site_id=${siteId}`).then(res => res.json()),
+      fetch(`/api/admin/sites/${siteId}/authors`).then(res => res.json()),
+    ])
+      .then(([termsData, authorsData]) => {
+        setCategories(termsData.terms?.filter((t: any) => t.type === 'category') || []);
+        setTags(termsData.terms?.filter((t: any) => t.type === 'tag') || []);
+        setAuthors(authorsData.authors || []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -71,6 +77,7 @@ export default function ContentForm({ siteId, type, returnUrl }: Props) {
           content_html: formData.get('content_html'),
           status: formData.get('status'),
           featured_media_id: selectedMediaId,
+          author_id: selectedAuthor || null,
         }),
       });
 
@@ -185,12 +192,33 @@ export default function ContentForm({ siteId, type, returnUrl }: Props) {
           {/* Publication */}
           <FormCard>
             <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Publication</h3>
-            <div>
-              <Label htmlFor="status">Statut</Label>
-              <Select id="status" name="status" defaultValue="draft">
-                <option value="draft">Brouillon</option>
-                <option value="published">Publié</option>
-              </Select>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="status">Statut</Label>
+                <Select id="status" name="status" defaultValue="draft">
+                  <option value="draft">Brouillon</option>
+                  <option value="published">Publié</option>
+                </Select>
+              </div>
+
+              {/* Auteur */}
+              {authors.length > 0 && (
+                <div>
+                  <Label htmlFor="author">Auteur</Label>
+                  <Select
+                    id="author"
+                    value={selectedAuthor}
+                    onChange={(e) => setSelectedAuthor(e.target.value)}
+                  >
+                    <option value="">Aucun auteur</option>
+                    {authors.map((author) => (
+                      <option key={author.id} value={author.id}>
+                        {author.name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              )}
             </div>
             <div className="mt-6 pt-6 border-t border-gray-700">
               <PrimaryButton type="submit" disabled={isSubmitting} className="w-full">

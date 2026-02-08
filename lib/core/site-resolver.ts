@@ -1,4 +1,4 @@
-import { getDomainByHostname, getPrimaryDomainBySiteId } from '@/lib/db/queries';
+import { getDomainByHostname, getPrimaryDomainBySiteId, getSiteById } from '@/lib/db/queries';
 import { Site, Domain } from '@/lib/db/types';
 
 // Simple in-memory cache for domain resolution
@@ -14,6 +14,19 @@ export function normalizeHostname(hostname: string): string {
     .replace(/:\d+$/, '') // Remove port
     .replace(/^www\./, '') // Remove www
     .replace(/\.$/, ''); // Remove trailing dot
+}
+
+/**
+ * Resolve site from preview siteId
+ */
+export async function resolveSiteFromPreview(siteId: string): Promise<{ site: Site; domain: null } | null> {
+  const site = await getSiteById(siteId);
+  
+  if (!site) {
+    return null;
+  }
+
+  return { site, domain: null };
 }
 
 /**

@@ -138,12 +138,12 @@ CREATE TABLE media (
     filename TEXT NOT NULL,
     url TEXT NOT NULL,
     storage_path TEXT NOT NULL,
-    alt TEXT,
-    width INTEGER,
-    height INTEGER,
+    alt_text TEXT,
+    title TEXT,
+    caption TEXT,
+    description TEXT,
     mime_type TEXT,
     file_size INTEGER,
-    alt_text TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

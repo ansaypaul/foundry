@@ -16,7 +16,7 @@ export default async function PublicLayout({
     return <>{children}</>;
   }
 
-  const { site } = siteContext;
+  const { site, isPreview } = siteContext;
 
   // Charger le thème du site
   let theme = null;
@@ -28,6 +28,13 @@ export default async function PublicLayout({
   if (!theme) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
+        {/* Barre de preview */}
+        {isPreview && (
+          <div className="bg-yellow-500 text-black py-2 px-4 text-center text-sm font-semibold sticky top-0 z-50">
+            🔍 Mode Aperçu : {site.name} | <Link href={`/admin/sites/${site.id}`} className="underline hover:text-gray-800">Retour admin</Link>
+          </div>
+        )}
+        
         <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
@@ -73,6 +80,23 @@ export default async function PublicLayout({
           flexDirection: 'column'
         }}
       >
+        {/* Barre de preview */}
+        {isPreview && (
+          <div style={{ 
+            backgroundColor: '#EAB308', 
+            color: '#000', 
+            padding: '0.5rem 1rem', 
+            textAlign: 'center', 
+            fontSize: '0.875rem', 
+            fontWeight: '600',
+            position: 'sticky',
+            top: 0,
+            zIndex: 100
+          }}>
+            🔍 Mode Aperçu : {site.name} | <Link href={`/admin/sites/${site.id}`} style={{ textDecoration: 'underline' }}>Retour admin</Link>
+          </div>
+        )}
+        
         {/* Header avec couleurs du thème */}
         <header 
           style={{ 

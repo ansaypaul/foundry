@@ -11,7 +11,9 @@ export async function POST(request: NextRequest) {
       slug, 
       excerpt, 
       content_html, 
-      status = 'draft' 
+      status = 'draft',
+      featured_media_id,
+      author_id,
     } = body;
 
     // Validation
@@ -46,6 +48,8 @@ export async function POST(request: NextRequest) {
       content_html: content_html?.trim() || null,
       status,
       published_at: status === 'published' ? new Date().toISOString() : undefined,
+      featured_media_id: featured_media_id || null,
+      author_id: author_id || null,
     });
 
     return NextResponse.json({ content }, { status: 201 });

@@ -5,9 +5,31 @@ export async function middleware(request: NextRequest) {
   // Get hostname from headers
   const hostname = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
   
-  // For admin routes, we don't redirect based on domain
+  // Vérifier l'authentification pour les routes admin
   if (request.nextUrl.pathname.startsWith('/admin')) {
-    return NextResponse.next();
+    const session = request.cookies.get('foundry-session');
+    
+    if (!session) {
+      // Rediriger vers la page de login
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+  }
+
+  // Gérer les URLs de preview : /preview/[siteId]/...
+  const previewMatch = request.nextUrl.pathname.match(/^\/preview\/([a-f0-9-]+)(\/.*)?$/);
+  if (previewMatch) {
+    const siteId = previewMatch[1];
+    const path = previewMatch[2] || '';
+    
+    // Rediriger vers la route publique normale avec un header spécial
+    const url = request.nextUrl.clone();
+    url.pathname = path || '/';
+    
+    const response = NextResponse.rewrite(url);
+    response.headers.set('x-foundry-preview-site-id', siteId);
+    response.headers.set('x-foundry-is-preview', 'true');
+    
+    return response;
   }
 
   // Pass hostname to the app via header

@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import MediaManager from './MediaManager';
 
-export default function MediaPage() {
+function MediaPageContent() {
   const searchParams = useSearchParams();
   const [sites, setSites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,5 +43,13 @@ export default function MediaPage() {
 
       <MediaManager sites={sites} preSelectedSiteId={preSelectedSiteId} />
     </div>
+  );
+}
+
+export default function MediaPage() {
+  return (
+    <Suspense fallback={<div className="text-white p-8">Chargement...</div>}>
+      <MediaPageContent />
+    </Suspense>
   );
 }

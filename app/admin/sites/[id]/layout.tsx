@@ -59,6 +59,9 @@ export default async function SiteAdminLayout({ children, params }: LayoutProps)
           <NavLink href={`/admin/sites/${id}/menus`} icon="🧭">
             Menus
           </NavLink>
+          <NavLink href={`/admin/sites/${id}/users`} icon="👥">
+            Utilisateurs
+          </NavLink>
           <NavLink href={`/admin/sites/${id}/theme`} icon="🎨">
             Thème
           </NavLink>
@@ -69,7 +72,7 @@ export default async function SiteAdminLayout({ children, params }: LayoutProps)
 
         {/* Footer */}
         <div className="p-4 border-t border-gray-700 space-y-2">
-          {primaryDomain ? (
+          {primaryDomain && (
             <a
               href={`http://${primaryDomain}:3000`}
               target="_blank"
@@ -78,16 +81,16 @@ export default async function SiteAdminLayout({ children, params }: LayoutProps)
             >
               Voir le site →
             </a>
-          ) : (
-            <a
-              href={`/preview/${id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-full px-4 py-2 text-center text-sm bg-yellow-600 text-black rounded hover:bg-yellow-700 transition-colors"
-            >
-              🔍 Aperçu du site
-            </a>
           )}
+          
+          <a
+            href={`/preview/${id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full px-4 py-2 text-center text-sm bg-yellow-600 text-black rounded hover:bg-yellow-700 transition-colors"
+          >
+            🔍 Aperçu (test)
+          </a>
         </div>
       </aside>
 

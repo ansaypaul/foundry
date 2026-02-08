@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Label, FormCard, ErrorMessage, SuccessMessage, PrimaryButton, SecondaryButton } from '@/app/admin/components/FormComponents';
 
 interface Props {
@@ -173,12 +174,23 @@ export default function SiteMediaManager({ siteId }: Props) {
                 </div>
                 <p className="text-xs text-gray-300 truncate">{item.filename}</p>
                 <div className="flex gap-2">
+                  <Link
+                    href={`/admin/sites/${siteId}/media/${item.id}`}
+                    className="flex-1"
+                  >
+                    <SecondaryButton
+                      type="button"
+                      className="w-full text-xs"
+                    >
+                      ✏️ Éditer
+                    </SecondaryButton>
+                  </Link>
                   <SecondaryButton
                     type="button"
                     onClick={() => copyToClipboard(item.url)}
-                    className="flex-1 text-xs"
+                    className="text-xs"
                   >
-                    Copier URL
+                    📋
                   </SecondaryButton>
                   <SecondaryButton
                     type="button"

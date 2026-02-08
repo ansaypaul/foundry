@@ -1,10 +1,11 @@
 import { Site, Domain } from '@/lib/db/types';
 import { headers } from 'next/headers';
-import { resolveSiteFromHostname } from '@/lib/core/site-resolver';
+import { resolveSiteFromHostname, resolveSiteFromPreview } from '@/lib/core/site-resolver';
 
 export interface SiteContext {
   site: Site;
-  domain: Domain;
+  domain: Domain | null;
+  isPreview?: boolean;
 }
 
 /**
@@ -12,8 +13,27 @@ export interface SiteContext {
  */
 export async function getCurrentSite(): Promise<SiteContext | null> {
   const headersList = await headers();
-  const hostname = headersList.get('x-foundry-hostname') || headersList.get('host') || 'localhost';
   
+  // Vérifier si on est en mode preview
+  const previewSiteId = headersList.get('x-foundry-preview-site-id');
+  const isPreview = headersList.get('x-foundry-is-preview') === 'true';
+  
+  if (isPreview && previewSiteId) {
+    const result = await resolveSiteFromPreview(previewSiteId);
+    
+    if (!result) {
+      return null;
+    }
+    
+    return {
+      site: result.site,
+      domain: null,
+      isPreview: true,
+    };
+  }
+  
+  // Mode normal avec hostname
+  const hostname = headersList.get('x-foundry-hostname') || headersList.get('host') || 'localhost';
   const result = await resolveSiteFromHostname(hostname);
   
   if (!result) {
@@ -23,6 +43,7 @@ export async function getCurrentSite(): Promise<SiteContext | null> {
   return {
     site: result.site,
     domain: result.domain,
+    isPreview: false,
   };
 }
 

@@ -77,9 +77,12 @@ export interface Media {
   id: string;
   site_id: string;
   url: string;
-  alt: string | null;
-  width: number | null;
-  height: number | null;
+  filename: string;
+  storage_path: string;
+  alt_text: string | null;
+  title: string | null;
+  caption: string | null;
+  description: string | null;
   mime_type: string | null;
   file_size: number | null;
   created_at: Date;
