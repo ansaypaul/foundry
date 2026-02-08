@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { getCurrentSite } from '@/lib/core/site-context';
 import { getThemeById } from '@/lib/db/themes-queries';
 import SiteMenu from './components/SiteMenu';
+import SiteHeader from './components/SiteHeader';
+import ThemedSiteHeader from './components/ThemedSiteHeader';
 import { ThemeProvider } from './themes/ThemeProvider';
 
 export default async function PublicLayout({
@@ -38,9 +40,7 @@ export default async function PublicLayout({
         <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
-              <Link href="/" className="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors">
-                {site.name}
-              </Link>
+              <SiteHeader siteName={site.name} />
               <SiteMenu siteId={site.id} location="header" className="hidden md:flex" />
             </div>
           </div>
@@ -109,18 +109,7 @@ export default async function PublicLayout({
         >
           <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '4rem' }}>
-              <Link 
-                href="/" 
-                style={{ 
-                  fontSize: '1.5rem', 
-                  fontWeight: 'bold',
-                  color: 'var(--color-primary)',
-                  textDecoration: 'none',
-                  fontFamily: 'var(--font-heading)'
-                }}
-              >
-                {site.name}
-              </Link>
+              <ThemedSiteHeader siteName={site.name} />
               <SiteMenu siteId={site.id} location="header" className="hidden md:flex" />
             </div>
           </div>

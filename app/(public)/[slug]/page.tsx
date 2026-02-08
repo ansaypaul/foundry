@@ -2,7 +2,7 @@ import { getCurrentSite } from '@/lib/core/site-context';
 import { getContentBySlug, getTermBySlug, getContentByTermId } from '@/lib/db/queries';
 import { getSupabaseAdmin } from '@/lib/db/client';
 import { notFound, redirect } from 'next/navigation';
-import Link from 'next/link';
+import PreviewLink from '../components/PreviewLink';
 import Image from 'next/image';
 import type { Metadata } from 'next';
 
@@ -109,9 +109,9 @@ export default async function ContentPage({ params }: PageProps) {
                 className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
               >
                 <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                  <Link href={`/${post.slug}`} className="hover:text-blue-600 transition-colors">
+                  <PreviewLink href={`/${post.slug}`} className="hover:text-blue-600 transition-colors">
                     {post.title}
-                  </Link>
+                  </PreviewLink>
                 </h2>
                 {post.excerpt && (
                   <p className="text-gray-600 mb-4 leading-relaxed">{post.excerpt}</p>
@@ -120,9 +120,9 @@ export default async function ContentPage({ params }: PageProps) {
                   {post.published_at && (
                     <time>{new Date(post.published_at).toLocaleDateString('fr-FR')}</time>
                   )}
-                  <Link href={`/${post.slug}`} className="text-blue-600 hover:text-blue-700 font-medium">
+                  <PreviewLink href={`/${post.slug}`} className="text-blue-600 hover:text-blue-700 font-medium">
                     Lire la suite →
-                  </Link>
+                  </PreviewLink>
                 </div>
               </article>
             ))}
@@ -227,12 +227,12 @@ export default async function ContentPage({ params }: PageProps) {
 
         {/* Navigation */}
         <div className="mt-12 pt-8 border-t border-gray-200">
-          <Link 
+          <PreviewLink 
             href="/" 
             className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
           >
             ← Retour aux articles
-          </Link>
+          </PreviewLink>
         </div>
       </article>
     </div>

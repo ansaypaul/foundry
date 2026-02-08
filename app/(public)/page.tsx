@@ -1,6 +1,6 @@
 import { getCurrentSite } from '@/lib/core/site-context';
 import { getPublishedPostsBySiteId } from '@/lib/db/queries';
-import Link from 'next/link';
+import PreviewLink from './components/PreviewLink';
 import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 
@@ -56,12 +56,12 @@ export default async function HomePage() {
               className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
             >
               <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                <Link
+                <PreviewLink
                   href={`/${post.slug}`}
                   className="hover:text-blue-600 transition-colors"
                 >
                   {post.title}
-                </Link>
+                </PreviewLink>
               </h2>
 
               {post.excerpt && (
@@ -80,12 +80,12 @@ export default async function HomePage() {
                     })}
                   </time>
                 )}
-                <Link
+                <PreviewLink
                   href={`/${post.slug}`}
                   className="text-blue-600 hover:text-blue-700 font-medium"
                 >
                   Lire la suite →
-                </Link>
+                </PreviewLink>
               </div>
             </article>
           ))}
