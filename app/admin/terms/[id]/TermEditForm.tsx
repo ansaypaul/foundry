@@ -1,0 +1,161 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Term } from '@/lib/db/types';
+import Link from 'next/link';
+import { Input, Textarea, Label, FormCard, ErrorMessage, SuccessMessage, PrimaryButton, SecondaryButton } from '@/app/admin/components/FormComponents';
+
+interface Props {
+  term: Term;
+}
+
+export default function TermEditForm({ term }: Props) {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    setSuccess(false);
+
+    const formData = new FormData(e.currentTarget);
+    
+    try {
+      const response = await fetch(`/api/admin/terms/${term.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.get('name'),
+          slug: formData.get('slug'),
+          description: formData.get('description'),
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Erreur lors de la mise à jour');
+      }
+
+      setSuccess(true);
+      router.refresh();
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce terme ?')) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/admin/terms/${term.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Erreur lors de la suppression');
+      }
+
+      router.push(returnUrl);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+      setIsDeleting(false);
+    }
+  }
+
+  const returnUrl = typeof window !== 'undefined' 
+    ? new URLSearchParams(window.location.search).get('returnTo') || '/admin/terms'
+    : '/admin/terms';
+
+  return (
+    <FormCard>
+      <form onSubmit={handleSubmit}>
+        {error && <ErrorMessage>{error}</ErrorMessage>}
+        {success && <SuccessMessage>Terme mis à jour avec succès !</SuccessMessage>}
+
+        <div className="space-y-6">
+          <div>
+            <Label htmlFor="name">Nom *</Label>
+            <Input
+              type="text"
+              id="name"
+              name="name"
+              required
+              defaultValue={term.name}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="slug">Slug (URL) *</Label>
+            <Input
+              type="text"
+              id="slug"
+              name="slug"
+              required
+              defaultValue={term.slug}
+              className="font-mono text-sm"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              name="description"
+              rows={4}
+              defaultValue={term.description || ''}
+            />
+          </div>
+
+          <div className="p-4 bg-gray-700/50 rounded-lg">
+            <dl className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <dt className="text-gray-400">Type</dt>
+                <dd className="text-white mt-1 capitalize">{term.type}</dd>
+              </div>
+              <div>
+                <dt className="text-gray-400">Créé le</dt>
+                <dd className="text-white mt-1">
+                  {new Date(term.created_at).toLocaleDateString('fr-FR')}
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <div className="mt-8 flex items-center justify-between pt-6 border-t border-gray-700">
+          <div className="flex items-center space-x-4">
+            <Link href={returnUrl} className="text-sm text-gray-400 hover:text-white">
+              ← Retour
+            </Link>
+            <SecondaryButton
+              type="button"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="text-red-400 hover:text-red-300"
+            >
+              {isDeleting ? 'Suppression...' : 'Supprimer'}
+            </SecondaryButton>
+          </div>
+          <PrimaryButton type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+          </PrimaryButton>
+        </div>
+      </form>
+    </FormCard>
+  );
+}
