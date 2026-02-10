@@ -139,7 +139,8 @@ export default async function ContentView({
                 alt={featuredMedia.alt_text || content.title}
                 fill
                 className="object-cover"
-                priority
+                priority={true}
+                loading="eager"
                 sizes="(max-width: 768px) 100vw, 896px"
               />
             </div>
