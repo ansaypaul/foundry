@@ -1,8 +1,10 @@
 {
-  "crons": [
+  "_comment": "Cron jobs désactivés (nécessite plan Vercel Pro+)",
+  "_crons_disabled": [
     {
       "path": "/api/cron/publish-scheduled",
-      "schedule": "* * * * *"
+      "schedule": "* * * * *",
+      "description": "Publie automatiquement les articles programmés"
     }
   ]
 }
