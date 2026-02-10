@@ -7,6 +7,7 @@ import type { Metadata } from 'next';
 import { resolveSeoMeta, generateMetadata as generateSeoMetadata, getSeoSettings } from '@/lib/core/seo';
 import CategoryView from './components/CategoryView';
 import ContentView from './components/ContentView';
+export const revalidate = 300;
 
 interface PageProps {
   params: Promise<{ slug: string }>;

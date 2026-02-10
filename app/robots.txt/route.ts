@@ -2,13 +2,8 @@ import { headers } from 'next/headers';
 import { getSiteByHostname, getDomainsBySiteId } from '@/lib/db/queries';
 import { getSupabaseAdmin } from '@/lib/db/client';
 import { NextResponse } from 'next/server';
+export const revalidate = 3600;
 
-export const dynamic = 'force-dynamic';
-
-/**
- * Génère un robots.txt dynamique par site
- * Avec possibilité de surcharge via les paramètres SEO
- */
 export async function GET() {
   const headersList = await headers();
   const hostname = headersList.get('host') || '';

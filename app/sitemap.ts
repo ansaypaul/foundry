@@ -1,10 +1,8 @@
 import { MetadataRoute } from 'next';
 import { headers } from 'next/headers';
 import { getSiteByHostname } from '@/lib/db/queries';
+export const revalidate = 3600;
 
-/**
- * Sitemap Index - Liste tous les sous-sitemaps du site actuel
- */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const headersList = await headers();
   const hostname = headersList.get('host') || '';

@@ -2,8 +2,7 @@ import { headers } from 'next/headers';
 import { getSiteByHostname, getDomainsBySiteId } from '@/lib/db/queries';
 import { getSupabaseAdmin } from '@/lib/db/client';
 import { NextResponse } from 'next/server';
-
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export async function GET() {
   const headersList = await headers();

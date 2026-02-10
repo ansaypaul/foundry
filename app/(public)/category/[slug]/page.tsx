@@ -8,6 +8,7 @@ import type { Metadata } from 'next';
 import { resolveSeoMeta, generateMetadata as generateSeoMetadata, getSeoSettings } from '@/lib/core/seo';
 import PageLayout from '../../themes/layouts/PageLayout';
 import type { Theme } from '@/lib/db/theme-types';
+export const revalidate = 600;
 
 interface PageProps {
   params: Promise<{ slug: string }>;
