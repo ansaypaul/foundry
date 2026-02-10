@@ -1,6 +1,5 @@
 import { getSiteById, getTermBySlug, getPrimaryDomainBySiteId } from '@/lib/db/queries';
 import { getContentBySlugWithSeo } from '@/lib/db/seo-queries';
-import { getSupabaseAdmin } from '@/lib/db/client';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { resolveSeoMeta, generateMetadata as generateSeoMetadata, getSeoSettings } from '@/lib/core/seo';
@@ -10,7 +9,6 @@ export const revalidate = 300; // 5 minutes
 
 interface PageProps {
   params: Promise<{ siteId: string; slug: string }>;
-  searchParams: Promise<{ preview?: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -91,24 +89,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default async function ContentPage({ params, searchParams }: PageProps) {
+export default async function ContentPage({ params }: PageProps) {
   const { siteId, slug } = await params;
-  const { preview } = await searchParams;
   
   const site = await getSiteById(siteId);
   if (!site) {
     notFound();
-  }
-  
-  // Vérifier si on est en mode preview (pour voir les articles draft/scheduled)
-  const isPreview = preview === '1';
-  let isAuthenticated = false;
-  
-  if (isPreview) {
-    // Vérifier si l'utilisateur est connecté
-    const { cookies } = await import('next/headers');
-    const cookieStore = await cookies();
-    isAuthenticated = cookieStore.has('foundry-session');
   }
 
   // 1. Vérifier si c'est une catégorie
@@ -120,47 +106,26 @@ export default async function ContentPage({ params, searchParams }: PageProps) {
     return <CategoryView category={category} siteId={site.id} siteName={site.name} />;
   }
 
-  // 2. Essayer de trouver un article/page
-  let content;
+  // 2. Chercher un article ou une page publiée
+  let content = await getContentBySlugWithSeo(site.id, slug, 'post');
   
-  if (isPreview && isAuthenticated) {
-    // En mode preview, on peut voir les articles draft/scheduled
-    const supabase = getSupabaseAdmin();
-    const { data: previewContent } = await supabase
-      .from('content')
-      .select('*')
-      .eq('site_id', site.id)
-      .eq('slug', slug)
-      .single();
-    
-    content = previewContent;
-  } else {
-    // Mode normal : seulement les articles publiés (avec SEO)
-    content = await getContentBySlugWithSeo(site.id, slug, 'post');
-    
-    if (!content) {
-      content = await getContentBySlugWithSeo(site.id, slug, 'page');
-    }
-  }
-
-  // 3. Si toujours pas trouvé, 404
   if (!content) {
-    notFound();
+    content = await getContentBySlugWithSeo(site.id, slug, 'page');
   }
-  
-  // 4. Si l'article n'est pas publié et qu'on n'est pas authentifié, 404
-  if (content.status !== 'published' && (!isPreview || !isAuthenticated)) {
+
+  // 3. Si pas trouvé ou pas publié, 404
+  if (!content || content.status !== 'published') {
     notFound();
   }
 
-  // 5. Afficher l'article/page
+  // 4. Afficher l'article/page
   return (
     <ContentView 
       content={content} 
       siteId={site.id} 
       siteName={site.name}
-      isPreview={isPreview}
-      isAuthenticated={isAuthenticated}
+      isPreview={false}
+      isAuthenticated={false}
     />
   );
 }
