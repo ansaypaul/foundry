@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getSiteIdFromCache, cacheSiteId } from '@/lib/redis/client';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -52,18 +53,30 @@ export async function middleware(request: NextRequest) {
   }
 
   // Résoudre le site depuis le hostname
-  const { data: domain } = await supabase
-    .from('domains')
-    .select('site_id, site:sites!inner(status)')
-    .eq('hostname', cleanHostname)
-    .eq('site.status', 'active')
-    .single();
+  // 1. Essayer depuis Redis (cache)
+  let siteId: string | null = await getSiteIdFromCache(cleanHostname);
+  
+  // 2. Si pas dans le cache, query Supabase et mettre en cache
+  if (!siteId) {
+    const { data: domain } = await supabase
+      .from('domains')
+      .select('site_id, site:sites!inner(status)')
+      .eq('hostname', cleanHostname)
+      .eq('site.status', 'active')
+      .single();
+    
+    if (domain?.site_id) {
+      // Mettre en cache pour les prochaines requêtes
+      await cacheSiteId(cleanHostname, domain.site_id);
+      siteId = domain.site_id;
+    }
+  }
 
-  if (domain?.site_id) {
+  if (siteId) {
     // Rewrite vers /sites/[siteId]/[path]
     const url = request.nextUrl.clone();
     const originalPath = url.pathname;
-    url.pathname = `/sites/${domain.site_id}${originalPath}`;
+    url.pathname = `/sites/${siteId}${originalPath}`;
     
     return NextResponse.rewrite(url);
   }
