@@ -50,6 +50,23 @@ export interface Content {
   published_at: Date | null;
   author_id: string | null;
   featured_media_id: string | null;
+  // SEO fields
+  seo_title: string | null;
+  seo_description: string | null;
+  seo_canonical: string | null;
+  seo_robots_index: boolean;
+  seo_robots_follow: boolean;
+  seo_focus_keyword: string | null;
+  seo_og_title: string | null;
+  seo_og_description: string | null;
+  seo_og_image: string | null;
+  seo_og_type: string;
+  seo_twitter_title: string | null;
+  seo_twitter_description: string | null;
+  seo_twitter_image: string | null;
+  seo_twitter_card: 'summary' | 'summary_large_image';
+  seo_breadcrumb_title: string | null;
+  seo_score: number;
   created_at: Date;
   updated_at: Date;
 }
@@ -61,6 +78,19 @@ export interface Term {
   slug: string;
   name: string;
   description: string | null;
+  // SEO fields
+  seo_title: string | null;
+  seo_description: string | null;
+  seo_canonical: string | null;
+  seo_robots_index: boolean;
+  seo_robots_follow: boolean;
+  seo_og_title: string | null;
+  seo_og_description: string | null;
+  seo_og_image: string | null;
+  seo_twitter_title: string | null;
+  seo_twitter_description: string | null;
+  seo_twitter_image: string | null;
+  seo_twitter_card: 'summary' | 'summary_large_image';
   created_at: Date;
   updated_at: Date;
 }
@@ -116,4 +146,51 @@ export interface AIJob {
   created_at: Date;
   started_at: Date | null;
   completed_at: Date | null;
+}
+
+export interface SeoRedirect {
+  id: string;
+  site_id: string;
+  source_path: string;
+  destination_path: string;
+  redirect_type: 301 | 302 | 307 | 308;
+  is_active: boolean;
+  hit_count: number;
+  last_hit_at: Date | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface SeoSettings {
+  id: string;
+  site_id: string;
+  // Global config
+  site_name: string | null;
+  site_tagline: string | null;
+  site_description: string | null;
+  separator: '|' | '-' | '–' | '—' | '/' | '·';
+  // Title templates
+  title_template_post: string;
+  title_template_page: string;
+  title_template_category: string;
+  title_template_tag: string;
+  title_template_home: string;
+  // Default meta
+  default_og_image: string | null;
+  default_twitter_card: 'summary' | 'summary_large_image';
+  // Social
+  twitter_username: string | null;
+  facebook_app_id: string | null;
+  // Organization
+  organization_name: string | null;
+  organization_logo: string | null;
+  // Locale
+  default_locale: string;
+  // Sitemap
+  sitemap_posts_priority: number;
+  sitemap_posts_changefreq: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+  sitemap_pages_priority: number;
+  sitemap_pages_changefreq: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+  created_at: Date;
+  updated_at: Date;
 }

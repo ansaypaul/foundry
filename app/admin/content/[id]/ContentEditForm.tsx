@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Content } from '@/lib/db/types';
 import MediaPicker from '@/app/admin/components/MediaPicker';
+import RichTextEditor from '@/app/admin/components/RichTextEditor';
+import { SeoBox } from '@/app/admin/components/SeoBox';
 import { Input, Textarea, Select, Label, HelperText, FormCard, ErrorMessage, SuccessMessage, PrimaryButton, SecondaryButton } from '@/app/admin/components/FormComponents';
 
 interface Props {
@@ -12,9 +14,10 @@ interface Props {
   categories: any[];
   tags: any[];
   contentTerms: any[];
+  siteUrl: string;
 }
 
-export default function ContentEditForm({ content, categories, tags, contentTerms }: Props) {
+export default function ContentEditForm({ content, categories, tags, contentTerms, siteUrl }: Props) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -26,6 +29,25 @@ export default function ContentEditForm({ content, categories, tags, contentTerm
   const [selectedAuthor, setSelectedAuthor] = useState<string>(content.author_id || '');
   const [authors, setAuthors] = useState<any[]>([]);
   const [loadingAuthors, setLoadingAuthors] = useState(true);
+  
+  // États pour les champs du formulaire
+  const [title, setTitle] = useState(content.title);
+  const [slug, setSlug] = useState(content.slug);
+  const [excerpt, setExcerpt] = useState(content.excerpt || '');
+  const [contentHtml, setContentHtml] = useState(content.content_html || '');
+  const [status, setStatus] = useState<'draft' | 'published' | 'scheduled'>(content.status);
+  const [publishedAt, setPublishedAt] = useState(
+    content.published_at ? new Date(content.published_at).toISOString().slice(0, 16) : ''
+  );
+  
+  // État pour les données SEO
+  const [seoData, setSeoData] = useState({
+    ...content,
+    title,
+    excerpt,
+    slug,
+    content_html: contentHtml,
+  });
 
   useEffect(() => {
     const categoryTerm = contentTerms.find((t: any) => t.type === 'category');
@@ -55,27 +77,58 @@ export default function ContentEditForm({ content, categories, tags, contentTerm
         : [...prev, tagId]
     );
   }
+  
+  function handleSeoUpdate(field: string, value: any) {
+    setSeoData(prev => ({ ...prev, [field]: value }));
+  }
+  
+  // Sync les champs principaux avec seoData pour les previews
+  useEffect(() => {
+    setSeoData(prev => ({ ...prev, title, excerpt, slug, content_html: contentHtml }));
+  }, [title, excerpt, slug, contentHtml]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
     setSuccess(false);
-
-    const formData = new FormData(e.currentTarget);
     
     try {
+      // Calculer le statut automatiquement selon la date
+      let finalStatus: 'draft' | 'published' | 'scheduled' = status;
+      if (publishedAt && status !== 'draft') {
+        const pubDate = new Date(publishedAt);
+        const now = new Date();
+        finalStatus = pubDate > now ? 'scheduled' : 'published';
+      }
+
       const response = await fetch(`/api/admin/content/${content.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: formData.get('title'),
-          slug: formData.get('slug'),
-          excerpt: formData.get('excerpt'),
-          content_html: formData.get('content_html'),
-          status: formData.get('status'),
+          title,
+          slug,
+          excerpt,
+          content_html: contentHtml,
+          status: finalStatus,
+          published_at: publishedAt || null,
           featured_media_id: featuredMediaId,
           author_id: selectedAuthor || null,
+          // Champs SEO
+          seo_title: seoData.seo_title,
+          seo_description: seoData.seo_description,
+          seo_focus_keyword: seoData.seo_focus_keyword,
+          seo_canonical: seoData.seo_canonical,
+          seo_robots_index: seoData.seo_robots_index,
+          seo_robots_follow: seoData.seo_robots_follow,
+          seo_og_title: seoData.seo_og_title,
+          seo_og_description: seoData.seo_og_description,
+          seo_og_image: seoData.seo_og_image,
+          seo_twitter_title: seoData.seo_twitter_title,
+          seo_twitter_description: seoData.seo_twitter_description,
+          seo_twitter_image: seoData.seo_twitter_image,
+          seo_twitter_card: seoData.seo_twitter_card,
+          seo_breadcrumb_title: (seoData as any).seo_breadcrumb_title,
         }),
       });
 
@@ -153,23 +206,47 @@ export default function ContentEditForm({ content, categories, tags, contentTerm
                 id="title"
                 name="title"
                 required
-                defaultValue={content.title}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
               />
+              
+              {/* Permalien */}
+              {slug && (
+                <div className="mt-2 text-sm">
+                  <span className="text-gray-400">Permalien : </span>
+                  <Link 
+                    href={`${siteUrl}/${slug}?preview=1`}
+                    target="_blank"
+                    className="text-blue-500 hover:text-blue-600 underline break-all"
+                  >
+                    {siteUrl}/{slug}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newSlug = window.prompt('Modifier le slug (uniquement la partie finale):', slug);
+                      if (newSlug) setSlug(newSlug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''));
+                    }}
+                    className="ml-2 text-blue-500 hover:text-blue-600 whitespace-nowrap"
+                  >
+                    Modifier
+                  </button>
+                </div>
+              )}
             </div>
           </FormCard>
 
           <FormCard>
             {/* Contenu HTML */}
             <div>
-              <Label htmlFor="content_html">Contenu</Label>
-              <Textarea
-                id="content_html"
-                name="content_html"
-                rows={20}
-                defaultValue={content.content_html || ''}
-                className="font-mono text-sm"
+              <Label>Contenu</Label>
+              <RichTextEditor
+                content={contentHtml}
+                onChange={setContentHtml}
+                placeholder="Commencez à écrire votre contenu..."
+                siteId={content.site.id}
               />
-              <HelperText>HTML autorisé : p, h2, h3, strong, em, ul, li</HelperText>
+              <HelperText>Utilisez la barre d'outils pour formater votre contenu</HelperText>
             </div>
           </FormCard>
 
@@ -181,27 +258,26 @@ export default function ContentEditForm({ content, categories, tags, contentTerm
                 id="excerpt"
                 name="excerpt"
                 rows={3}
-                defaultValue={content.excerpt || ''}
+                value={excerpt}
+                onChange={(e) => setExcerpt(e.target.value)}
               />
             </div>
           </FormCard>
+          
+          {/* SEO Box */}
+          <SeoBox
+            content={seoData}
+            onUpdate={handleSeoUpdate}
+            siteUrl="https://example.com"
+            siteName={content.site.name}
+            showAnalysis={true}
+            showPreview={true}
+            showAdvanced={true}
+          />
 
           <FormCard>
-            {/* Slug */}
-            <div>
-              <Label htmlFor="slug">Slug (URL) *</Label>
-              <Input
-                type="text"
-                id="slug"
-                name="slug"
-                required
-                defaultValue={content.slug}
-                className="font-mono text-sm"
-              />
-            </div>
-
             {/* Métadonnées */}
-            <div className="mt-6 pt-6 border-t border-gray-700">
+            <div>
               <dl className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <dt className="text-gray-400">Créé le</dt>
@@ -246,11 +322,37 @@ export default function ContentEditForm({ content, categories, tags, contentTerm
 
             <div>
               <Label htmlFor="status">Statut</Label>
-              <Select id="status" name="status" defaultValue={content.status}>
+              <Select 
+                id="status" 
+                name="status" 
+                value={status}
+                onChange={(e) => setStatus(e.target.value as 'draft' | 'published' | 'scheduled')}
+              >
                 <option value="draft">Brouillon</option>
                 <option value="published">Publié</option>
+                {status === 'scheduled' && <option value="scheduled">Programmé</option>}
               </Select>
             </div>
+
+            {/* Date de publication */}
+            {status !== 'draft' && (
+              <div className="mt-4">
+                <Label htmlFor="published-at">Date de publication</Label>
+                <Input
+                  type="datetime-local"
+                  id="published-at"
+                  value={publishedAt}
+                  onChange={(e) => setPublishedAt(e.target.value)}
+                />
+                <HelperText>
+                  {publishedAt && new Date(publishedAt) > new Date() 
+                    ? '📅 Publication programmée le ' + new Date(publishedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                    : status === 'published' 
+                      ? '✅ Publié le ' + (publishedAt ? new Date(publishedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'maintenant')
+                      : 'Choisir une date de publication'}
+                </HelperText>
+              </div>
+            )}
 
             {/* Auteur */}
             {!loadingAuthors && authors.length > 0 && (

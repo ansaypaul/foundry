@@ -4,15 +4,17 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import MediaPicker from '@/app/admin/components/MediaPicker';
+import RichTextEditor from '@/app/admin/components/RichTextEditor';
 import { Input, Textarea, Select, Label, HelperText, FormCard, ErrorMessage, PrimaryButton, SecondaryButton } from '@/app/admin/components/FormComponents';
 
 interface Props {
   siteId: string;
   type: 'post' | 'page';
   returnUrl: string;
+  siteUrl: string;
 }
 
-export default function ContentForm({ siteId, type, returnUrl }: Props) {
+export default function ContentForm({ siteId, type, returnUrl, siteUrl }: Props) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,6 +26,14 @@ export default function ContentForm({ siteId, type, returnUrl }: Props) {
   const [tags, setTags] = useState<any[]>([]);
   const [authors, setAuthors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // États pour les champs du formulaire
+  const [title, setTitle] = useState('');
+  const [slug, setSlug] = useState('');
+  const [excerpt, setExcerpt] = useState('');
+  const [contentHtml, setContentHtml] = useState('');
+  const [status, setStatus] = useState('draft');
+  const [publishedAt, setPublishedAt] = useState('');
 
   useEffect(() => {
     // Charger les termes et les auteurs
@@ -61,21 +71,28 @@ export default function ContentForm({ siteId, type, returnUrl }: Props) {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
-
-    const formData = new FormData(e.currentTarget);
     
     try {
+      // Calculer le statut automatiquement selon la date
+      let finalStatus = status;
+      if (publishedAt && status !== 'draft') {
+        const pubDate = new Date(publishedAt);
+        const now = new Date();
+        finalStatus = pubDate > now ? 'scheduled' : 'published';
+      }
+
       const response = await fetch('/api/admin/content', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           site_id: siteId,
           type: type,
-          title: formData.get('title'),
-          slug: formData.get('slug'),
-          excerpt: formData.get('excerpt'),
-          content_html: formData.get('content_html'),
-          status: formData.get('status'),
+          title,
+          slug,
+          excerpt,
+          content_html: contentHtml,
+          status: finalStatus,
+          published_at: publishedAt || null,
           featured_media_id: selectedMediaId,
           author_id: selectedAuthor || null,
         }),
@@ -132,28 +149,52 @@ export default function ContentForm({ siteId, type, returnUrl }: Props) {
                 name="title"
                 required
                 placeholder="Le titre de votre contenu"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 onBlur={(e) => {
-                  const slugInput = document.getElementById('slug') as HTMLInputElement;
-                  if (slugInput && !slugInput.value) {
-                    slugInput.value = generateSlug(e.target.value);
+                  if (!slug) {
+                    setSlug(generateSlug(e.target.value));
                   }
                 }}
               />
+              
+              {/* Permalien */}
+              {slug && (
+                <div className="mt-2 text-sm">
+                  <span className="text-gray-400">Permalien : </span>
+                  <Link 
+                    href={`${siteUrl}/${slug}?preview=1`}
+                    target="_blank"
+                    className="text-blue-500 hover:text-blue-600 underline break-all"
+                  >
+                    {siteUrl}/{slug}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newSlug = window.prompt('Modifier le slug (uniquement la partie finale):', slug);
+                      if (newSlug) setSlug(generateSlug(newSlug));
+                    }}
+                    className="ml-2 text-blue-500 hover:text-blue-600 whitespace-nowrap"
+                  >
+                    Modifier
+                  </button>
+                </div>
+              )}
             </div>
           </FormCard>
 
           <FormCard>
             {/* Contenu HTML */}
             <div>
-              <Label htmlFor="content_html">Contenu</Label>
-              <Textarea
-                id="content_html"
-                name="content_html"
-                rows={20}
-                placeholder="<p>Votre contenu...</p>"
-                className="font-mono text-sm"
+              <Label>Contenu</Label>
+              <RichTextEditor
+                content={contentHtml}
+                onChange={setContentHtml}
+                placeholder="Commencez à écrire votre contenu..."
+                siteId={siteId}
               />
-              <HelperText>HTML autorisé : p, h2, h3, strong, em, ul, li</HelperText>
+              <HelperText>Utilisez la barre d'outils pour formater votre contenu</HelperText>
             </div>
           </FormCard>
 
@@ -166,23 +207,9 @@ export default function ContentForm({ siteId, type, returnUrl }: Props) {
                 name="excerpt"
                 rows={3}
                 placeholder="Un court résumé pour les aperçus..."
+                value={excerpt}
+                onChange={(e) => setExcerpt(e.target.value)}
               />
-            </div>
-          </FormCard>
-
-          <FormCard>
-            {/* Slug */}
-            <div>
-              <Label htmlFor="slug">Slug (URL) *</Label>
-              <Input
-                type="text"
-                id="slug"
-                name="slug"
-                required
-                placeholder="mon-super-article"
-                className="font-mono text-sm"
-              />
-              <HelperText>Généré automatiquement depuis le titre</HelperText>
             </div>
           </FormCard>
         </div>
@@ -195,11 +222,34 @@ export default function ContentForm({ siteId, type, returnUrl }: Props) {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="status">Statut</Label>
-                <Select id="status" name="status" defaultValue="draft">
+                <Select 
+                  id="status" 
+                  name="status" 
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                >
                   <option value="draft">Brouillon</option>
-                  <option value="published">Publié</option>
+                  <option value="published">Publié immédiatement</option>
                 </Select>
               </div>
+
+              {/* Date de publication */}
+              {status === 'published' && (
+                <div>
+                  <Label htmlFor="published-at">Date de publication</Label>
+                  <Input
+                    type="datetime-local"
+                    id="published-at"
+                    value={publishedAt}
+                    onChange={(e) => setPublishedAt(e.target.value)}
+                  />
+                  <HelperText>
+                    {publishedAt && new Date(publishedAt) > new Date() 
+                      ? '📅 Publication programmée' 
+                      : 'Publier maintenant ou choisir une date future'}
+                  </HelperText>
+                </div>
+              )}
 
               {/* Auteur */}
               {authors.length > 0 && (

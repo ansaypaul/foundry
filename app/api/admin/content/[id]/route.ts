@@ -9,7 +9,14 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const body = await request.json();
-    const { title, slug, excerpt, content_html, status, featured_media_id, author_id } = body;
+    const { 
+      title, slug, excerpt, content_html, status, featured_media_id, author_id,
+      // Champs SEO
+      seo_title, seo_description, seo_focus_keyword, seo_canonical,
+      seo_robots_index, seo_robots_follow, seo_og_title, seo_og_description,
+      seo_og_image, seo_twitter_title, seo_twitter_description, seo_twitter_image,
+      seo_twitter_card, seo_breadcrumb_title
+    } = body;
 
     const supabase = getSupabaseAdmin();
 
@@ -49,6 +56,22 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
         updates.published_at = new Date().toISOString();
       }
     }
+    
+    // Champs SEO
+    if (seo_title !== undefined) updates.seo_title = seo_title?.trim() || null;
+    if (seo_description !== undefined) updates.seo_description = seo_description?.trim() || null;
+    if (seo_focus_keyword !== undefined) updates.seo_focus_keyword = seo_focus_keyword?.trim() || null;
+    if (seo_canonical !== undefined) updates.seo_canonical = seo_canonical?.trim() || null;
+    if (seo_robots_index !== undefined) updates.seo_robots_index = seo_robots_index;
+    if (seo_robots_follow !== undefined) updates.seo_robots_follow = seo_robots_follow;
+    if (seo_og_title !== undefined) updates.seo_og_title = seo_og_title?.trim() || null;
+    if (seo_og_description !== undefined) updates.seo_og_description = seo_og_description?.trim() || null;
+    if (seo_og_image !== undefined) updates.seo_og_image = seo_og_image?.trim() || null;
+    if (seo_twitter_title !== undefined) updates.seo_twitter_title = seo_twitter_title?.trim() || null;
+    if (seo_twitter_description !== undefined) updates.seo_twitter_description = seo_twitter_description?.trim() || null;
+    if (seo_twitter_image !== undefined) updates.seo_twitter_image = seo_twitter_image?.trim() || null;
+    if (seo_twitter_card !== undefined) updates.seo_twitter_card = seo_twitter_card;
+    if (seo_breadcrumb_title !== undefined) updates.seo_breadcrumb_title = seo_breadcrumb_title?.trim() || null;
 
     // Mettre à jour
     const { data: updated, error: updateError } = await supabase

@@ -18,6 +18,18 @@ export default async function SitePostsPage({ params }: PageProps) {
 
   const supabase = getSupabaseAdmin();
   
+  // Récupérer le domaine principal du site
+  const { data: allDomains } = await supabase
+    .from('domains')
+    .select('hostname, is_primary')
+    .eq('site_id', id)
+    .order('is_primary', { ascending: false });
+
+  const primaryDomain = allDomains?.find(d => d.is_primary) || allDomains?.[0];
+  const siteUrl = primaryDomain?.hostname 
+    ? `https://${primaryDomain.hostname}` 
+    : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/preview/${id}`;
+  
   // Charger les posts avec leurs catégories
   const [postsResult, categoriesResult] = await Promise.all([
     supabase
@@ -71,6 +83,7 @@ export default async function SitePostsPage({ params }: PageProps) {
       <PostsManager 
         siteId={id}
         siteName={site.name}
+        siteUrl={siteUrl}
         initialPosts={postsWithCategories}
         categories={categoriesResult.data || []}
       />

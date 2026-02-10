@@ -5,6 +5,7 @@ import SiteMenu from './components/SiteMenu';
 import SiteHeader from './components/SiteHeader';
 import ThemedSiteHeader from './components/ThemedSiteHeader';
 import { ThemeProvider } from './themes/ThemeProvider';
+import './content-styles.css';
 
 export default async function PublicLayout({
   children,

@@ -2,9 +2,44 @@ import { requireCurrentSite } from '@/lib/core/site-context';
 import { getTermBySlug, getContentByTermId } from '@/lib/db/queries';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+import { resolveSeoMeta, generateMetadata as generateSeoMetadata, getSeoSettings } from '@/lib/core/seo';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  
+  try {
+    const { site, domain } = await requireCurrentSite();
+    const tag = await getTermBySlug(site.id, slug, 'tag');
+    
+    if (!tag) {
+      return { title: 'Tag non trouvé' };
+    }
+    
+    const settings = await getSeoSettings(site.id);
+    const siteUrl = domain?.hostname 
+      ? `https://${domain.hostname}` 
+      : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/preview/${site.id}`;
+    
+    const seoContext = {
+      entity: tag,
+      entityType: 'term' as const,
+      siteUrl,
+      siteName: settings?.site_name || site.name,
+      siteTagline: settings?.site_tagline || undefined,
+      settings,
+      currentPath: `/tag/${slug}`,
+    };
+    
+    const resolvedSeo = await resolveSeoMeta(seoContext);
+    return generateSeoMetadata(resolvedSeo);
+  } catch {
+    return { title: 'Tag' };
+  }
 }
 
 export default async function TagPage({ params }: PageProps) {

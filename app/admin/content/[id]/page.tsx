@@ -24,6 +24,18 @@ export default async function EditContentPage({ params }: PageProps) {
     notFound();
   }
 
+  // Récupérer le domaine principal du site
+  const { data: allDomains } = await supabase
+    .from('domains')
+    .select('hostname, is_primary')
+    .eq('site_id', content.site_id)
+    .order('is_primary', { ascending: false });
+
+  const primaryDomain = allDomains?.find(d => d.is_primary) || allDomains?.[0];
+  const siteUrl = primaryDomain?.hostname 
+    ? `https://${primaryDomain.hostname}` 
+    : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/preview/${content.site_id}`;
+
   // Charger les catégories et tags du site
   const [categories, tags, contentTerms] = await Promise.all([
     getTermsBySiteId(content.site_id, 'category'),
@@ -43,6 +55,7 @@ export default async function EditContentPage({ params }: PageProps) {
         categories={categories}
         tags={tags}
         contentTerms={contentTerms}
+        siteUrl={siteUrl}
       />
     </div>
   );

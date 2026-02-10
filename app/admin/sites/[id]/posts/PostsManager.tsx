@@ -19,11 +19,12 @@ interface Post {
 interface Props {
   siteId: string;
   siteName: string;
+  siteUrl: string;
   initialPosts: Post[];
   categories: any[];
 }
 
-export default function PostsManager({ siteId, siteName, initialPosts, categories }: Props) {
+export default function PostsManager({ siteId, siteName, siteUrl, initialPosts, categories }: Props) {
   const [posts, setPosts] = useState(initialPosts);
   const [filteredPosts, setFilteredPosts] = useState(initialPosts);
   
@@ -271,16 +272,14 @@ export default function PostsManager({ siteId, siteName, initialPosts, categorie
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                       <div className="flex items-center justify-end gap-2">
-                        {post.status === 'published' && (
-                          <a
-                            href={`/${post.slug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-400 hover:text-blue-300"
-                          >
-                            Voir
-                          </a>
-                        )}
+                        <a
+                          href={`${siteUrl}/${post.slug}${post.status !== 'published' ? '?preview=1' : ''}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:text-blue-300"
+                        >
+                          Voir
+                        </a>
                         <Link
                           href={`/admin/sites/${siteId}/content/${post.id}`}
                           className="text-gray-300 hover:text-white"

@@ -3,6 +3,7 @@ import { getPublishedPostsBySiteId } from '@/lib/db/queries';
 import PreviewLink from './components/PreviewLink';
 import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
+import { resolveSeoMeta, generateMetadata as generateSeoMetadata, getSeoSettings } from '@/lib/core/seo';
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -10,11 +11,26 @@ export async function generateMetadata(): Promise<Metadata> {
     if (!siteContext) {
       return { title: 'Admin' };
     }
-    const { site } = siteContext;
-    return {
-      title: site.name,
-      description: `Bienvenue sur ${site.name}`,
+    const { site, domain } = siteContext;
+    
+    // Settings SEO
+    const settings = await getSeoSettings(site.id);
+    const siteUrl = domain?.hostname 
+      ? `https://${domain.hostname}` 
+      : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/preview/${site.id}`;
+    
+    const seoContext = {
+      entity: null,
+      entityType: 'home' as const,
+      siteUrl,
+      siteName: settings?.site_name || site.name,
+      siteTagline: settings?.site_tagline || undefined,
+      settings,
+      currentPath: '/',
     };
+    
+    const resolvedSeo = await resolveSeoMeta(seoContext);
+    return generateSeoMetadata(resolvedSeo);
   } catch {
     return { title: 'Site' };
   }

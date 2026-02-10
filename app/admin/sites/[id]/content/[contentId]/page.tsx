@@ -53,6 +53,20 @@ export default async function EditContentPage({ params }: PageProps) {
 
   const terms = contentTerms?.map(ct => ct.terms).filter(Boolean) || [];
 
+  // Récupérer le domaine du site
+  const { data: allDomains } = await supabase
+    .from('domains')
+    .select('is_primary, hostname')
+    .eq('site_id', id)
+    .order('is_primary', { ascending: false });
+  
+  // Prendre le premier domaine (primary en premier grâce au ORDER BY)
+  const primaryDomain = allDomains?.[0];
+
+  const siteUrl = primaryDomain?.hostname 
+    ? `https://${primaryDomain.hostname}` 
+    : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/preview/${id}`;
+
   return (
     <div>
       <div className="mb-8">
@@ -65,6 +79,7 @@ export default async function EditContentPage({ params }: PageProps) {
         categories={categories || []} 
         tags={tags || []}
         contentTerms={terms}
+        siteUrl={siteUrl}
       />
     </div>
   );

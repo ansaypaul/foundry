@@ -2,9 +2,44 @@ import { requireCurrentSite } from '@/lib/core/site-context';
 import { getTermBySlug, getContentByTermId } from '@/lib/db/queries';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+import { resolveSeoMeta, generateMetadata as generateSeoMetadata, getSeoSettings } from '@/lib/core/seo';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  
+  try {
+    const { site, domain } = await requireCurrentSite();
+    const category = await getTermBySlug(site.id, slug, 'category');
+    
+    if (!category) {
+      return { title: 'Catégorie non trouvée' };
+    }
+    
+    const settings = await getSeoSettings(site.id);
+    const siteUrl = domain?.hostname 
+      ? `https://${domain.hostname}` 
+      : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/preview/${site.id}`;
+    
+    const seoContext = {
+      entity: category,
+      entityType: 'term' as const,
+      siteUrl,
+      siteName: settings?.site_name || site.name,
+      siteTagline: settings?.site_tagline || undefined,
+      settings,
+      currentPath: `/category/${slug}`,
+    };
+    
+    const resolvedSeo = await resolveSeoMeta(seoContext);
+    return generateSeoMetadata(resolvedSeo);
+  } catch {
+    return { title: 'Catégorie' };
+  }
 }
 
 export default async function CategoryPage({ params }: PageProps) {
