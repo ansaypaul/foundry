@@ -142,6 +142,7 @@ export default async function ContentView({
                 priority={true}
                 loading="eager"
                 sizes="(max-width: 768px) 100vw, 896px"
+                {...({ fetchPriority: 'high' } as any)}
               />
             </div>
           )}
