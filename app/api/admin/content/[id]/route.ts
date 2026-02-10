@@ -11,7 +11,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const { id } = await params;
     const body = await request.json();
     const { 
-      title, slug, excerpt, content_html, status, featured_media_id, author_id,
+      title, slug, excerpt, content_html, status, featured_media_id, new_author_id,
       // Champs SEO
       seo_title, seo_description, seo_focus_keyword, seo_canonical,
       seo_robots_index, seo_robots_follow, seo_og_title, seo_og_description,
@@ -49,7 +49,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (excerpt !== undefined) updates.excerpt = excerpt?.trim() || null;
     if (content_html !== undefined) updates.content_html = content_html?.trim() || null;
     if (featured_media_id !== undefined) updates.featured_media_id = featured_media_id;
-    if (author_id !== undefined) updates.author_id = author_id || null;
+    if (new_author_id !== undefined) updates.new_author_id = new_author_id || null;
     if (status) {
       updates.status = status;
       // Si on publie, ajouter la date de publication

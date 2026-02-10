@@ -21,7 +21,7 @@ export default async function ContentView({
   isPreview = false,
   isAuthenticated = false 
 }: ContentViewProps) {
-  // Charger l'image ├á la une si pr├®sente
+  // Charger l'image à la une si présente
   let featuredMedia: any = null;
   if (content.featured_media_id) {
     const supabase = getSupabaseAdmin();
@@ -34,7 +34,7 @@ export default async function ContentView({
     featuredMedia = data;
   }
 
-  // R├®cup├®rer la config du th├¿me pour les articles
+  // Récupérer la config du thème pour les articles
   const fullSite = await getSiteById(siteId);
   const theme = fullSite?.theme_id ? await getThemeById(fullSite.theme_id) : null;
   
@@ -52,7 +52,7 @@ export default async function ContentView({
   const themeModulesConfig = (theme as any)?.modules_config?.single;
   const singleConfig = siteModulesConfig || themeModulesConfig || defaultSingleConfig;
 
-  // R├®cup├®rer les donn├®es pour la sidebar
+  // Récupérer les données pour la sidebar
   const recentPosts = content.type === 'post' ? await getPublishedPostsBySiteId(siteId, 5) : [];
   const categories = content.type === 'post' ? await getCategoriesWithCount(siteId) : [];
 
@@ -82,7 +82,7 @@ export default async function ContentView({
             )}
             {isPreview && isAuthenticated && content.status !== 'published' && (
               <span className="px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-full font-medium">
-                ­ƒæü´©Å Preview - {content.status === 'draft' ? 'Brouillon' : 'Programm├®'}
+                🔍 Preview - {content.status === 'draft' ? 'Brouillon' : 'Programmé'}
               </span>
             )}
           </div>
@@ -98,23 +98,52 @@ export default async function ContentView({
             {content.title}
           </h1>
 
-          {/* M├®tadonn├®es pour les articles */}
-          {content.type === 'post' && content.published_at && (
+          {/* Métadonnées pour les articles */}
+          {content.type === 'post' && (
             <div 
-              className="flex items-center space-x-4 text-sm mb-8 pb-8"
+              className="flex items-center gap-4 text-sm mb-8 pb-8"
               style={{ 
                 color: 'var(--color-text)',
                 opacity: 0.7,
                 borderBottom: '1px solid var(--color-border)'
               }}
             >
-              <time dateTime={new Date(content.published_at).toISOString()}>
-                {new Date(content.published_at).toLocaleDateString('fr-FR', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </time>
+              {/* Auteur */}
+              {(content as any).author && (
+                <div className="flex items-center gap-2">
+                  {(content as any).author.avatar_url && (
+                    <Image
+                      src={(content as any).author.avatar_url}
+                      alt={(content as any).author.display_name}
+                      width={32}
+                      height={32}
+                      className="rounded-full object-cover"
+                      style={{ width: '32px', height: '32px' }}
+                    />
+                  )}
+                  <PreviewLink 
+                    href={`/author/${(content as any).author.slug}`}
+                    className="font-medium hover:opacity-80"
+                    style={{ color: 'var(--color-primary)' }}
+                  >
+                    {(content as any).author.display_name}
+                  </PreviewLink>
+                </div>
+              )}
+              
+              {/* Date de publication */}
+              {content.published_at && (
+                <>
+                  {(content as any).author && <span>•</span>}
+                  <time dateTime={new Date(content.published_at).toISOString()}>
+                    {new Date(content.published_at).toLocaleDateString('fr-FR', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </time>
+                </>
+              )}
             </div>
           )}
 
@@ -131,7 +160,7 @@ export default async function ContentView({
             </div>
           )}
 
-          {/* Image ├á la une */}
+          {/* Image à la une */}
           {featuredMedia && (
             <div className="relative w-full aspect-video mb-8 rounded-lg overflow-hidden">
               <Image
@@ -169,7 +198,7 @@ export default async function ContentView({
               className="inline-flex items-center font-medium hover:opacity-80 transition-opacity"
               style={{ color: 'var(--color-primary)' }}
             >
-              ÔåÉ Retour aux articles
+              ← Retour aux articles
             </PreviewLink>
           </div>
         </article>

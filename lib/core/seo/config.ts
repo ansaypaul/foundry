@@ -3,7 +3,7 @@
  * Configuration globale du système SEO de Foundry
  */
 
-import type { Content, Term, SeoSettings } from '@/lib/db/types';
+import type { Content, Term, SeoSettings, Author } from '@/lib/db/types';
 
 // ===================================
 // TYPES & INTERFACES
@@ -61,7 +61,8 @@ export type SchemaGraph =
   | SchemaWebPage
   | SchemaArticle
   | SchemaBreadcrumbList
-  | SchemaOrganization;
+  | SchemaOrganization
+  | SchemaProfilePage;
 
 export interface SchemaWebSite {
   '@context': 'https://schema.org';
@@ -131,6 +132,19 @@ export interface SchemaOrganization {
   logo?: string;
 }
 
+export interface SchemaProfilePage {
+  '@context': 'https://schema.org';
+  '@type': 'ProfilePage';
+  mainEntity: {
+    '@type': 'Person';
+    name: string;
+    description?: string;
+    image?: string;
+    url?: string;
+    sameAs?: string[];
+  };
+}
+
 /**
  * Breadcrumb item
  */
@@ -160,9 +174,7 @@ export interface SeoContext {
 
   // Optional relationships
   category?: Term;
-  author?: {
-    name: string;
-  };
+  author?: Author;
 }
 
 // ===================================

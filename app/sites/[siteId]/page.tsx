@@ -3,6 +3,7 @@ import { getThemeById } from '@/lib/db/themes-queries';
 import type { Metadata } from 'next';
 import { resolveSeoMeta, generateMetadata as generateSeoMetadata, getSeoSettings } from '@/lib/core/seo';
 import PageLayout from '@/app/themes/layouts/PageLayout';
+import JsonLd from '@/app/components/JsonLd';
 import type { Theme } from '@/lib/db/theme-types';
 export const revalidate = 120; // 2 minutes
 
@@ -98,15 +99,42 @@ export default async function HomePage({ params }: PageProps) {
   // Récupérer les settings SEO pour le tagline
   const seoSettings = await getSeoSettings(site.id);
 
+  // Générer les schémas JSON-LD
+  let schemas: any[] = [];
+  try {
+    const domain = await getPrimaryDomainBySiteId(site.id);
+    const siteUrl = domain?.hostname 
+      ? `https://${domain.hostname}` 
+      : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/preview/${site.id}`;
+    
+    const seoContext = {
+      entity: null,
+      entityType: 'home' as const,
+      siteUrl,
+      siteName: seoSettings?.site_name || site.name,
+      siteTagline: seoSettings?.site_tagline || undefined,
+      settings: seoSettings,
+      currentPath: '/',
+    };
+    
+    const resolvedSeo = await resolveSeoMeta(seoContext);
+    schemas = resolvedSeo.schema || [];
+  } catch (error) {
+    console.error('[SEO] Error generating schemas:', error);
+  }
+
   return (
-    <PageLayout
-      config={homepageConfig}
-      data={{
-        siteName: site.name,
-        siteTagline: seoSettings?.site_tagline || 'Découvrez nos derniers articles',
-        posts,
-        categories,
-      }}
-    />
+    <>
+      <JsonLd schemas={schemas} />
+      <PageLayout
+        config={homepageConfig}
+        data={{
+          siteName: site.name,
+          siteTagline: seoSettings?.site_tagline || 'Découvrez nos derniers articles',
+          posts,
+          categories,
+        }}
+      />
+    </>
   );
 }

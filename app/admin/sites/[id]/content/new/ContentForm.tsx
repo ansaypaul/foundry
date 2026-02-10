@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import MediaPicker from '@/app/admin/components/MediaPicker';
+import MediaUploader from '@/app/admin/components/MediaUploader';
 import RichTextEditor from '@/app/admin/components/RichTextEditor';
 import { Input, Textarea, Select, Label, HelperText, FormCard, ErrorMessage, PrimaryButton, SecondaryButton } from '@/app/admin/components/FormComponents';
 
@@ -94,7 +94,7 @@ export default function ContentForm({ siteId, type, returnUrl, siteUrl }: Props)
           status: finalStatus,
           published_at: publishedAt || null,
           featured_media_id: selectedMediaId,
-          author_id: selectedAuthor || null,
+          new_author_id: selectedAuthor || null,
         }),
       });
 
@@ -263,7 +263,7 @@ export default function ContentForm({ siteId, type, returnUrl, siteUrl }: Props)
                     <option value="">Aucun auteur</option>
                     {authors.map((author) => (
                       <option key={author.id} value={author.id}>
-                        {author.name}
+                        {author.display_name}
                       </option>
                     ))}
                   </Select>
@@ -283,10 +283,12 @@ export default function ContentForm({ siteId, type, returnUrl, siteUrl }: Props)
           {/* Image à la une */}
           <FormCard>
             <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Image à la une</h3>
-            <MediaPicker
+            <MediaUploader
               siteId={siteId}
               selectedMediaId={selectedMediaId}
-              onSelect={setSelectedMediaId}
+              onSelect={(id) => setSelectedMediaId(id)}
+              buttonText="Choisir une image"
+              buttonClassName="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             />
           </FormCard>
 

@@ -393,7 +393,17 @@ function resolveSchema(context: SeoContext, meta: ResolvedSeoMeta) {
         author: context.author
           ? {
               '@type': 'Person',
-              name: context.author.name,
+              name: context.author.display_name,
+              description: context.author.bio || undefined,
+              image: context.author.avatar_url || undefined,
+              url: context.author.website_url || undefined,
+              sameAs: [
+                context.author.twitter_username ? `https://twitter.com/${context.author.twitter_username}` : null,
+                context.author.facebook_url,
+                context.author.linkedin_url,
+                context.author.instagram_username ? `https://instagram.com/${context.author.instagram_username}` : null,
+                context.author.github_username ? `https://github.com/${context.author.github_username}` : null,
+              ].filter(Boolean) as string[],
             }
           : undefined,
         publisher: context.settings?.organization_name

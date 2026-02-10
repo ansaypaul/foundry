@@ -12,16 +12,16 @@ interface CategoryViewProps {
 }
 
 export default async function CategoryView({ category, siteId, siteName }: CategoryViewProps) {
-  // R├®cup├®rer les articles de cette cat├®gorie (enrichis avec auteur + image)
+  // Récupérer les articles de cette catégorie (enrichis avec auteur + image)
   const rawPosts = await getContentByTermId(category.id);
   
-  // Enrichir avec les donn├®es manquantes (auteur, image, cat├®gorie)
+  // Enrichir avec les données manquantes (auteur, image, catégorie)
   const supabase = getSupabaseAdmin();
   const enrichedPosts = await Promise.all(
     rawPosts.map(async (post: any) => {
-      // R├®cup├®rer l'auteur
+      // Récupérer l'auteur
       const { data: author } = await supabase.from('users').select('name').eq('id', post.author_id).single();
-      // R├®cup├®rer l'image
+      // Récupérer l'image
       const { data: media } = post.featured_media_id 
         ? await supabase.from('media').select('url').eq('id', post.featured_media_id).single()
         : { data: null };
@@ -35,7 +35,7 @@ export default async function CategoryView({ category, siteId, siteName }: Categ
     })
   );
 
-  // R├®cup├®rer le th├¿me et la config
+  // Récupérer le thème et la config
   const fullSite = await getSiteById(siteId);
   const theme = fullSite?.theme_id ? await getThemeById(fullSite.theme_id) : null;
   
@@ -61,12 +61,12 @@ export default async function CategoryView({ category, siteId, siteName }: Categ
   const themeModulesConfig = (theme as any)?.modules_config?.category;
   const categoryConfig = siteModulesConfig || themeModulesConfig || defaultConfig;
 
-  // R├®cup├®rer les cat├®gories pour la sidebar
+  // Récupérer les catégories pour la sidebar
   const categories = await getCategoriesWithCount(siteId);
 
   return (
     <div>
-      {/* Header cat├®gorie */}
+      {/* Header catégorie */}
       <div 
         className="py-12 mb-8"
         style={{ 
@@ -74,7 +74,7 @@ export default async function CategoryView({ category, siteId, siteName }: Categ
           borderBottom: '1px solid var(--color-border)'
         }}
       >
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-6">
           <span 
             className="inline-block px-3 py-1 text-sm rounded-full font-medium mb-4"
             style={{ 
@@ -82,7 +82,7 @@ export default async function CategoryView({ category, siteId, siteName }: Categ
               color: 'white'
             }}
           >
-            Cat├®gorie
+            Catégorie
           </span>
           <h1 
             className="text-4xl font-bold mb-4"

@@ -22,7 +22,7 @@ export default function DefaultLayout({ siteName, menus, children }: Props) {
         borderBottom: `1px solid var(--color-border)`,
         padding: '1rem 0'
       }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem' }}>
+        <div className="max-w-7xl mx-auto px-6">
           <Link 
             href="/" 
             style={{ 
@@ -61,7 +61,7 @@ export default function DefaultLayout({ siteName, menus, children }: Props) {
       </header>
 
       {/* Main */}
-      <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1rem' }}>
+      <main className="max-w-7xl mx-auto px-6 py-8">
         {children}
       </main>
 
@@ -73,7 +73,7 @@ export default function DefaultLayout({ siteName, menus, children }: Props) {
         backgroundColor: 'var(--color-secondary)',
         color: 'white'
       }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem', textAlign: 'center' }}>
+        <div className="max-w-7xl mx-auto px-6 text-center">
           <p>&copy; {new Date().getFullYear()} {siteName}. Propulsé par Foundry.</p>
         </div>
       </footer>

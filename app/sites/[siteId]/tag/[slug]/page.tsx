@@ -66,7 +66,7 @@ export default async function TagPage({ params }: PageProps) {
   const posts = await getContentByTermId(tag.id);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
+    <div className="max-w-4xl mx-auto px-6 py-12">
       <div className="mb-12">
         <span className="px-3 py-1 text-sm bg-gray-200 text-gray-800 rounded-full font-medium mb-4 inline-block">
           Tag

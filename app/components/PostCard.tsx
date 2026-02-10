@@ -8,7 +8,13 @@ interface Post {
   excerpt?: string | null;
   published_at?: string | Date | null;
   featured_image_url?: string | null;
-  author_name?: string | null;
+  author_name?: string | null; // Legacy
+  author?: {
+    id: string;
+    display_name: string;
+    slug: string;
+    avatar_url?: string | null;
+  };
   category_name?: string | null;
 }
 
@@ -105,9 +111,11 @@ export default function PostCard({
               opacity: 0.7
             }}
           >
-            {showAuthor && post.author_name && (
+            {showAuthor && (post.author || post.author_name) && (
               <>
-                <span className="font-medium">{post.author_name}</span>
+                <span className="font-medium">
+                  {post.author ? post.author.display_name : post.author_name}
+                </span>
                 {showDate && post.published_at && <span>/</span>}
               </>
             )}

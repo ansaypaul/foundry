@@ -34,10 +34,10 @@ export default function PageLayout({ config, data }: Props) {
 
   // Layout sans sidebar (centré ou pleine largeur)
   if (!hasSidebar) {
-    const maxWidth = layout === 'full_width' ? 'max-w-full' : layout === 'centered' ? 'max-w-4xl' : 'max-w-6xl';
+    const maxWidth = layout === 'full_width' ? 'max-w-full' : layout === 'centered' ? 'max-w-4xl' : 'max-w-7xl';
     
     return (
-      <div className={`${maxWidth} mx-auto px-4 py-12`}>
+      <div className={`${maxWidth} mx-auto px-6 py-12`}>
         {modules.map((module, index) => (
           <div key={`${module.type}-${index}`} className="mb-8">
             <ModuleRenderer module={module} data={data} />
@@ -49,7 +49,7 @@ export default function PageLayout({ config, data }: Props) {
 
   // Layout avec sidebar
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className="max-w-7xl mx-auto px-6 py-12">
       <div className={`grid grid-cols-1 lg:grid-cols-12 gap-8 ${sidebarPosition === 'left' ? 'lg:flex-row-reverse' : ''}`}>
         {/* Main content */}
         <div className={`${sidebarPosition === 'left' ? 'lg:col-start-4' : ''} lg:col-span-8`}>
@@ -61,7 +61,7 @@ export default function PageLayout({ config, data }: Props) {
         </div>
 
         {/* Sidebar */}
-        <aside className={`${sidebarPosition === 'left' ? 'lg:col-start-1 lg:col-span-3' : 'lg:col-span-4'}`}>
+        <aside className={`py-12 ${sidebarPosition === 'left' ? 'lg:col-start-1 lg:col-span-3' : 'lg:col-span-4'}`}>
           <div className="space-y-6 sticky top-4">
             {sidebar.modules?.map((module, index) => (
               <div key={`sidebar-${module.type}-${index}`}>

@@ -38,6 +38,26 @@ export interface Membership {
   created_at: Date;
 }
 
+export interface Author {
+  id: string;
+  site_id: string;
+  user_id: string | null;
+  slug: string;
+  display_name: string;
+  email: string | null;
+  bio: string | null;
+  avatar_url: string | null;
+  website_url: string | null;
+  twitter_username: string | null;
+  facebook_url: string | null;
+  linkedin_url: string | null;
+  instagram_username: string | null;
+  github_username: string | null;
+  posts_count: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface Content {
   id: string;
   site_id: string;

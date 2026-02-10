@@ -146,7 +146,7 @@ export async function getPublishedPostsBySiteId(siteId: string, limit: number = 
     .from('content')
     .select(`
       *,
-      author:users(name),
+      author:authors!content_new_author_id_fkey(id, display_name, slug, avatar_url),
       featured_media:media(url),
       term_relations(
         term:terms(id, name, slug, type)
@@ -218,7 +218,7 @@ export async function createContent(content: {
   excerpt?: string;
   content_html?: string;
   status?: 'draft' | 'published';
-  author_id?: string;
+  new_author_id?: string;
   featured_media_id?: string;
   published_at?: string;
 }): Promise<Content> {

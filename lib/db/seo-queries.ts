@@ -154,15 +154,18 @@ export async function enrichContentsWithSeo(contents: any[]) {
 }
 
 /**
- * Charge un content par slug avec ses métadonnées SEO
+ * Charge un content par slug avec ses métadonnées SEO et l'auteur
  */
 export async function getContentBySlugWithSeo(siteId: string, slug: string, type: 'post' | 'page') {
   const supabase = getSupabaseAdmin();
   
-  // Charger le content
+  // Charger le content avec l'auteur
   const { data: content, error } = await supabase
     .from('content')
-    .select('*')
+    .select(`
+      *,
+      author:authors!content_new_author_id_fkey(id, display_name, slug, avatar_url, bio)
+    `)
     .eq('site_id', siteId)
     .eq('slug', slug)
     .eq('type', type)

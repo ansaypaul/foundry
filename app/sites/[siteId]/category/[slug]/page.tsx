@@ -133,7 +133,7 @@ export default async function CategoryPage({ params }: PageProps) {
           borderBottom: '1px solid var(--color-border)'
         }}
       >
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-6">
           <span 
             className="inline-block px-3 py-1 text-sm rounded-full font-medium mb-4"
             style={{ 

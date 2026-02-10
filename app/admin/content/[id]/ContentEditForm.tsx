@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Content } from '@/lib/db/types';
-import MediaPicker from '@/app/admin/components/MediaPicker';
+import MediaUploader from '@/app/admin/components/MediaUploader';
 import RichTextEditor from '@/app/admin/components/RichTextEditor';
 import { SeoBox } from '@/app/admin/components/SeoBox';
 import { Input, Textarea, Select, Label, HelperText, FormCard, ErrorMessage, SuccessMessage, PrimaryButton, SecondaryButton } from '@/app/admin/components/FormComponents';
@@ -26,7 +26,7 @@ export default function ContentEditForm({ content, categories, tags, contentTerm
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [featuredMediaId, setFeaturedMediaId] = useState<string | null>(content.featured_media_id);
-  const [selectedAuthor, setSelectedAuthor] = useState<string>(content.author_id || '');
+  const [selectedAuthor, setSelectedAuthor] = useState<string>((content as any).new_author_id || '');
   const [authors, setAuthors] = useState<any[]>([]);
   const [loadingAuthors, setLoadingAuthors] = useState(true);
   
@@ -120,7 +120,7 @@ export default function ContentEditForm({ content, categories, tags, contentTerm
           status: finalStatus,
           published_at: publishedAt || null,
           featured_media_id: featuredMediaId,
-          author_id: selectedAuthor || null,
+          new_author_id: selectedAuthor || null,
           // Champs SEO
           seo_title: seoData.seo_title,
           seo_description: seoData.seo_description,
@@ -373,7 +373,7 @@ export default function ContentEditForm({ content, categories, tags, contentTerm
                   <option value="">Aucun auteur</option>
                   {authors.map((author) => (
                     <option key={author.id} value={author.id}>
-                      {author.name}
+                      {author.display_name}
                     </option>
                   ))}
                 </Select>
@@ -401,10 +401,12 @@ export default function ContentEditForm({ content, categories, tags, contentTerm
           {/* Image à la une */}
           <FormCard>
             <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Image à la une</h3>
-            <MediaPicker
+            <MediaUploader
               siteId={content.site.id}
               selectedMediaId={featuredMediaId}
-              onSelect={(mediaId) => setFeaturedMediaId(mediaId)}
+              onSelect={(id) => setFeaturedMediaId(id)}
+              buttonText="Choisir une image"
+              buttonClassName="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             />
           </FormCard>
 
