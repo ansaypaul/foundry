@@ -36,12 +36,46 @@ export default async function EditContentPage({ params }: PageProps) {
     ? `https://${primaryDomain.hostname}` 
     : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/preview/${content.site_id}`;
 
-  // Charger les catégories et tags du site
-  const [categories, tags, contentTerms] = await Promise.all([
+  // Charger les catégories et tags du site + les métadonnées SEO
+  const [categories, tags, contentTerms, seoMetaResult] = await Promise.all([
     getTermsBySiteId(content.site_id, 'category'),
     getTermsBySiteId(content.site_id, 'tag'),
     getTermsByContentId(content.id),
+    supabase
+      .from('seo_meta')
+      .select('*')
+      .eq('entity_type', 'content')
+      .eq('entity_id', id)
+      .maybeSingle(), // maybeSingle au lieu de single pour gérer le cas où ça n'existe pas
   ]);
+
+  const seoMeta = seoMetaResult.data;
+
+  // Debug détaillé
+  console.log('🔍 Debug SEO Meta:', {
+    contentId: id,
+    seoMetaError: seoMetaResult.error,
+    seoMetaData: seoMeta,
+    hasSeoMeta: !!seoMeta,
+  });
+
+  // Merger les données SEO dans content (en excluant les champs système)
+  const contentWithSeo = seoMeta 
+    ? (() => {
+        const { id, entity_type, entity_id, created_at, updated_at, ...seoFields } = seoMeta;
+        return {
+          ...content,
+          ...seoFields,
+        };
+      })()
+    : content;
+
+  console.log('✅ Content merged with SEO:', {
+    hasContentWithSeo: !!contentWithSeo,
+    seo_title: contentWithSeo.seo_title,
+    seo_description: contentWithSeo.seo_description,
+    allKeys: Object.keys(contentWithSeo).filter(k => k.startsWith('seo_')),
+  });
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -51,7 +85,7 @@ export default async function EditContentPage({ params }: PageProps) {
       </div>
 
       <ContentEditForm 
-        content={content} 
+        content={contentWithSeo} 
         categories={categories}
         tags={tags}
         contentTerms={contentTerms}

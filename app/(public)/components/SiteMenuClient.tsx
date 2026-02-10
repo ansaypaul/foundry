@@ -6,9 +6,10 @@ interface Props {
   items: any[];
   location: 'header' | 'footer' | 'sidebar';
   className?: string;
+  onClick?: () => void;
 }
 
-export default function SiteMenuClient({ items, location, className = '' }: Props) {
+export default function SiteMenuClient({ items, location, className = '', onClick }: Props) {
   if (!items || items.length === 0) {
     return null;
   }
@@ -22,6 +23,7 @@ export default function SiteMenuClient({ items, location, className = '' }: Prop
           <li key={item.id}>
             <PreviewLink
               href={item.url}
+              onClick={onClick}
               className={
                 isFooter
                   ? 'text-sm text-gray-600 hover:text-gray-900 transition-colors block'

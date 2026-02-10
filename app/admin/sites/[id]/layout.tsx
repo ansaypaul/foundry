@@ -65,6 +65,9 @@ export default async function SiteAdminLayout({ children, params }: LayoutProps)
           <NavLink href={`/admin/sites/${id}/theme`} icon="🎨">
             Thème
           </NavLink>
+          <NavLink href={`/admin/sites/${id}/seo`} icon="🔍">
+            SEO
+          </NavLink>
           <NavLink href={`/admin/sites/${id}/settings`} icon="⚙️">
             Paramètres
           </NavLink>

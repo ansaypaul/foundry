@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/db/client';
+import { upsertSeoMeta } from '@/lib/db/seo-queries';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -57,32 +58,56 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       }
     }
     
-    // Champs SEO
-    if (seo_title !== undefined) updates.seo_title = seo_title?.trim() || null;
-    if (seo_description !== undefined) updates.seo_description = seo_description?.trim() || null;
-    if (seo_focus_keyword !== undefined) updates.seo_focus_keyword = seo_focus_keyword?.trim() || null;
-    if (seo_canonical !== undefined) updates.seo_canonical = seo_canonical?.trim() || null;
-    if (seo_robots_index !== undefined) updates.seo_robots_index = seo_robots_index;
-    if (seo_robots_follow !== undefined) updates.seo_robots_follow = seo_robots_follow;
-    if (seo_og_title !== undefined) updates.seo_og_title = seo_og_title?.trim() || null;
-    if (seo_og_description !== undefined) updates.seo_og_description = seo_og_description?.trim() || null;
-    if (seo_og_image !== undefined) updates.seo_og_image = seo_og_image?.trim() || null;
-    if (seo_twitter_title !== undefined) updates.seo_twitter_title = seo_twitter_title?.trim() || null;
-    if (seo_twitter_description !== undefined) updates.seo_twitter_description = seo_twitter_description?.trim() || null;
-    if (seo_twitter_image !== undefined) updates.seo_twitter_image = seo_twitter_image?.trim() || null;
-    if (seo_twitter_card !== undefined) updates.seo_twitter_card = seo_twitter_card;
-    if (seo_breadcrumb_title !== undefined) updates.seo_breadcrumb_title = seo_breadcrumb_title?.trim() || null;
+    // Mettre à jour le content seulement si on a des changements
+    let updated;
+    if (Object.keys(updates).length > 0) {
+      const { data: updatedContent, error: updateError } = await supabase
+        .from('content')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
 
-    // Mettre à jour
-    const { data: updated, error: updateError } = await supabase
-      .from('content')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
+      if (updateError) {
+        throw updateError;
+      }
+      updated = updatedContent;
+    } else {
+      // Pas de changements sur le content lui-même, utiliser les données existantes
+      updated = existing;
+    }
 
-    if (updateError) {
-      throw updateError;
+    // Mettre à jour les métadonnées SEO
+    const hasSeoData = seo_title !== undefined || seo_description !== undefined || 
+                       seo_focus_keyword !== undefined || seo_canonical !== undefined ||
+                       seo_robots_index !== undefined || seo_robots_follow !== undefined ||
+                       seo_og_title !== undefined || seo_og_description !== undefined ||
+                       seo_og_image !== undefined || seo_twitter_title !== undefined ||
+                       seo_twitter_description !== undefined || seo_twitter_image !== undefined ||
+                       seo_twitter_card !== undefined || seo_breadcrumb_title !== undefined;
+
+    if (hasSeoData) {
+      try {
+        await upsertSeoMeta('content', id, {
+          seo_title: seo_title?.trim() || null,
+          seo_description: seo_description?.trim() || null,
+          seo_focus_keyword: seo_focus_keyword?.trim() || null,
+          seo_canonical: seo_canonical?.trim() || null,
+          seo_robots_index,
+          seo_robots_follow,
+          seo_og_title: seo_og_title?.trim() || null,
+          seo_og_description: seo_og_description?.trim() || null,
+          seo_og_image: seo_og_image?.trim() || null,
+          seo_twitter_title: seo_twitter_title?.trim() || null,
+          seo_twitter_description: seo_twitter_description?.trim() || null,
+          seo_twitter_image: seo_twitter_image?.trim() || null,
+          seo_twitter_card,
+          seo_breadcrumb_title: seo_breadcrumb_title?.trim() || null,
+        });
+      } catch (error) {
+        console.error('Error updating SEO meta:', error);
+        // On ne fail pas si le SEO échoue
+      }
     }
 
     return NextResponse.json({ content: updated });

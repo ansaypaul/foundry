@@ -191,6 +191,13 @@ export interface SeoSettings {
   sitemap_posts_changefreq: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
   sitemap_pages_priority: number;
   sitemap_pages_changefreq: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+  // Robots.txt
+  custom_robots_txt: string | null;
+  // Schema.org / JSON-LD
+  schema_article_type: 'Article' | 'NewsArticle' | 'BlogPosting' | 'TechArticle' | 'ScholarlyArticle';
+  schema_enable_organization: boolean;
+  schema_enable_website: boolean;
+  schema_enable_breadcrumbs: boolean;
   created_at: Date;
   updated_at: Date;
 }

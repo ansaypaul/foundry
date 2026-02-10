@@ -1,9 +1,11 @@
 import { getCurrentSite } from '@/lib/core/site-context';
-import { getPublishedPostsBySiteId } from '@/lib/db/queries';
-import PreviewLink from './components/PreviewLink';
+import { getPublishedPostsBySiteId, getCategoriesWithCount } from '@/lib/db/queries';
+import { getThemeById } from '@/lib/db/themes-queries';
 import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import { resolveSeoMeta, generateMetadata as generateSeoMetadata, getSeoSettings } from '@/lib/core/seo';
+import PageLayout from './themes/layouts/PageLayout';
+import type { Theme } from '@/lib/db/theme-types';
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -45,68 +47,63 @@ export default async function HomePage() {
   }
   
   const { site } = siteContext;
+  
+  // Récupérer le thème du site
+  const theme = site.theme_id ? await getThemeById(site.theme_id) : null;
+  
+  // Configuration par défaut si pas de thème ou pas de configuration de modules
+  const defaultConfig = {
+    layout: 'default' as const,
+    modules: [
+      {
+        type: 'hero',
+        enabled: true,
+        config: {
+          showTitle: true,
+          showTagline: true,
+          centered: true,
+        },
+      },
+      {
+        type: 'posts_grid',
+        enabled: true,
+        config: {
+          columns: 2,
+          showExcerpt: true,
+          showDate: true,
+          limit: 6,
+        },
+      },
+    ],
+    sidebar: {
+      enabled: false,
+    },
+  };
+
+  // Priorité de configuration :
+  // 1. Configuration du site (theme_config.homepage) - surcharge personnalisée
+  // 2. Configuration du thème (modules_config.homepage) - défaut du thème
+  // 3. Configuration par défaut (defaultConfig) - fallback
+  const siteModulesConfig = site.theme_config?.modules_config?.homepage;
+  const themeModulesConfig = (theme as Theme)?.modules_config?.homepage;
+  const homepageConfig = siteModulesConfig || themeModulesConfig || defaultConfig;
+  
+  // Récupérer les données nécessaires
   const posts = await getPublishedPostsBySiteId(site.id);
+  const categories = await getCategoriesWithCount(site.id);
+  
+  // Récupérer les settings SEO pour le tagline
+  const seoSettings = await getSeoSettings(site.id);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      {/* Hero section */}
-      <div className="mb-12 text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Bienvenue sur {site.name}
-        </h1>
-        <p className="text-xl text-gray-600">
-          Découvrez nos derniers articles
-        </p>
-      </div>
-
-      {/* Articles list */}
-      {posts.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <p className="text-gray-600">Aucun article publié pour le moment.</p>
-        </div>
-      ) : (
-        <div className="space-y-8">
-          {posts.map((post) => (
-            <article
-              key={post.id}
-              className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
-            >
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">
-                <PreviewLink
-                  href={`/${post.slug}`}
-                  className="hover:text-blue-600 transition-colors"
-                >
-                  {post.title}
-                </PreviewLink>
-              </h2>
-
-              {post.excerpt && (
-                <p className="text-gray-600 mb-4 leading-relaxed">
-                  {post.excerpt}
-                </p>
-              )}
-
-              <div className="flex items-center justify-between text-sm text-gray-500">
-                {post.published_at && (
-                  <time dateTime={new Date(post.published_at).toISOString()}>
-                    {new Date(post.published_at).toLocaleDateString('fr-FR', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </time>
-                )}
-                <PreviewLink
-                  href={`/${post.slug}`}
-                  className="text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  Lire la suite →
-                </PreviewLink>
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
-    </div>
+    <PageLayout
+      config={homepageConfig}
+      data={{
+        siteName: site.name,
+        siteTagline: seoSettings?.site_tagline || 'Découvrez nos derniers articles',
+        posts,
+        categories,
+      }}
+    />
   );
 }

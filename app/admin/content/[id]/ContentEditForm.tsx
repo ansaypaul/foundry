@@ -49,6 +49,13 @@ export default function ContentEditForm({ content, categories, tags, contentTerm
     content_html: contentHtml,
   });
 
+  // Debug : voir ce qu'on a dans content
+  console.log('🔍 Content SEO data:', {
+    seo_title: content.seo_title,
+    seo_description: content.seo_description,
+    seo_og_title: content.seo_og_title,
+  });
+
   useEffect(() => {
     const categoryTerm = contentTerms.find((t: any) => t.type === 'category');
     if (categoryTerm) {

@@ -53,6 +53,31 @@ export default async function EditContentPage({ params }: PageProps) {
 
   const terms = contentTerms?.map(ct => ct.terms).filter(Boolean) || [];
 
+  // Charger les métadonnées SEO
+  const { data: seoMeta } = await supabase
+    .from('seo_meta')
+    .select('*')
+    .eq('entity_type', 'content')
+    .eq('entity_id', contentId)
+    .maybeSingle();
+
+  // Merger les données SEO dans content (en excluant les champs système)
+  const contentWithSeo = seoMeta 
+    ? (() => {
+        const { id, entity_type, entity_id, created_at, updated_at, ...seoFields } = seoMeta;
+        return {
+          ...content,
+          ...seoFields,
+        };
+      })()
+    : content;
+
+  console.log('📦 SEO loaded for content:', {
+    contentId,
+    hasSeoMeta: !!seoMeta,
+    seo_title: seoMeta?.seo_title,
+  });
+
   // Récupérer le domaine du site
   const { data: allDomains } = await supabase
     .from('domains')
@@ -75,7 +100,7 @@ export default async function EditContentPage({ params }: PageProps) {
       </div>
 
       <ContentEditForm 
-        content={content} 
+        content={contentWithSeo} 
         categories={categories || []} 
         tags={tags || []}
         contentTerms={terms}

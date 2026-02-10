@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import { getCurrentSite } from '@/lib/core/site-context';
 import { getThemeById } from '@/lib/db/themes-queries';
+import { getMenuByLocation } from '@/lib/db/menus-queries';
 import SiteMenu from './components/SiteMenu';
 import SiteHeader from './components/SiteHeader';
 import ThemedSiteHeader from './components/ThemedSiteHeader';
+import MobileMenu from './components/MobileMenu';
 import { ThemeProvider } from './themes/ThemeProvider';
 import './content-styles.css';
 
@@ -27,6 +29,17 @@ export default async function PublicLayout({
     theme = await getThemeById((site as any).theme_id);
   }
 
+  // Charger les items du menu pour le mobile
+  const menu = await getMenuByLocation(site.id, 'header');
+  let menuItems: any[] = [];
+  if (menu && menu.items) {
+    try {
+      menuItems = typeof menu.items === 'string' ? JSON.parse(menu.items) : menu.items;
+    } catch {
+      menuItems = [];
+    }
+  }
+
   // Si pas de thème, utiliser le layout par défaut sans thème
   if (!theme) {
     return (
@@ -42,7 +55,10 @@ export default async function PublicLayout({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <SiteHeader siteName={site.name} />
-              <SiteMenu siteId={site.id} location="header" className="hidden md:flex" />
+              <div className="flex items-center gap-4">
+                <SiteMenu siteId={site.id} location="header" className="hidden md:flex" />
+                <MobileMenu siteName={site.name} menuItems={menuItems} />
+              </div>
             </div>
           </div>
         </header>
@@ -111,7 +127,10 @@ export default async function PublicLayout({
           <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '4rem' }}>
               <ThemedSiteHeader siteName={site.name} />
-              <SiteMenu siteId={site.id} location="header" className="hidden md:flex" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <SiteMenu siteId={site.id} location="header" className="hidden md:flex" />
+                <MobileMenu siteName={site.name} menuItems={menuItems} />
+              </div>
             </div>
           </div>
         </header>

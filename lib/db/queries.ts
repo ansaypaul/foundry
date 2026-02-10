@@ -85,6 +85,12 @@ export async function getDomainByHostname(hostname: string): Promise<(Domain & {
   return data as any;
 }
 
+export async function getSiteByHostname(hostname: string): Promise<Site | null> {
+  const domainWithSite = await getDomainByHostname(hostname);
+  if (!domainWithSite) return null;
+  return domainWithSite.site as Site;
+}
+
 export async function getDomainsBySiteId(siteId: string): Promise<Domain[]> {
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
@@ -138,7 +144,14 @@ export async function getPublishedPostsBySiteId(siteId: string, limit: number = 
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from('content')
-    .select('*')
+    .select(`
+      *,
+      author:users(name),
+      featured_media:media(url),
+      term_relations(
+        term:terms(id, name, slug, type)
+      )
+    `)
     .eq('site_id', siteId)
     .eq('type', 'post')
     .eq('status', 'published')
@@ -146,7 +159,25 @@ export async function getPublishedPostsBySiteId(siteId: string, limit: number = 
     .limit(limit);
 
   if (error) throw error;
-  return (data as any[]) as Content[];
+  
+  // Enrichir les données avec author_name, featured_image_url et category_name
+  const enrichedData = (data as any[]).map((post: any) => {
+    const author_name = post.author?.name || null;
+    const featured_image_url = post.featured_media?.url || null;
+    const categories = post.term_relations
+      ?.map((rel: any) => rel.term)
+      ?.filter((term: any) => term?.type === 'category');
+    const category_name = categories?.[0]?.name || null;
+    
+    return {
+      ...post,
+      author_name,
+      featured_image_url,
+      category_name,
+    };
+  });
+  
+  return enrichedData as Content[];
 }
 
 export async function getContentBySlug(siteId: string, slug: string, type: 'post' | 'page'): Promise<Content | null> {
@@ -338,4 +369,37 @@ export async function setContentTerms(contentId: string, siteId: string, termIds
 
     if (error) throw error;
   }
+}
+
+/**
+ * Get categories with post count for a site
+ */
+export async function getCategoriesWithCount(siteId: string) {
+  const supabase = getSupabaseAdmin();
+  
+  const { data, error } = await supabase
+    .from('terms')
+    .select(`
+      id,
+      name,
+      slug,
+      description,
+      term_relations!inner(content_id)
+    `)
+    .eq('site_id', siteId)
+    .eq('type', 'category');
+
+  if (error) throw error;
+
+  // Count posts per category
+  const categoriesWithCount = (data || []).map((category: any) => ({
+    id: category.id,
+    name: category.name,
+    slug: category.slug,
+    description: category.description,
+    post_count: category.term_relations?.length || 0,
+  }));
+
+  // Sort by post count descending
+  return categoriesWithCount.sort((a, b) => b.post_count - a.post_count);
 }

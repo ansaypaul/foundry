@@ -9,15 +9,18 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Input, Textarea, Label, HelperText, Select } from './FormComponents';
 import { analyzeSeo, type SeoAnalysisResult } from '@/lib/core/seo';
-import type { Content } from '@/lib/db/types';
+import type { Content, Term } from '@/lib/db/types';
 
 // ===================================
 // TYPES
 // ===================================
 
+// Type pour les entités qui peuvent avoir des métadonnées SEO
+export type SeoEntity = Partial<Content> | Partial<Term>;
+
 export interface SeoBoxProps {
-  // Données du contenu
-  content: Partial<Content>;
+  // Données du contenu (Content ou Term)
+  content: SeoEntity;
   
   // Callbacks pour mise à jour
   onUpdate: (field: string, value: any) => void;
@@ -48,8 +51,12 @@ export function SeoBox({
   const [activeTab, setActiveTab] = useState<'general' | 'social' | 'advanced'>('general');
   
   // Valeurs SEO avec fallbacks pour preview
-  const seoTitle = content.seo_title || content.title || '';
-  const seoDescription = content.seo_description || content.excerpt || '';
+  // Support à la fois Content (title/excerpt) et Term (name/description)
+  const contentTitle = 'title' in content ? content.title : ('name' in content ? content.name : '');
+  const contentExcerpt = 'excerpt' in content ? content.excerpt : ('description' in content ? content.description : '');
+  
+  const seoTitle = content.seo_title || contentTitle || '';
+  const seoDescription = content.seo_description || contentExcerpt || '';
   const ogImage = content.seo_og_image || null;
   
   // Analyse SEO (si contenu complet)
@@ -153,14 +160,17 @@ function GeneralTab({
   siteUrl,
   siteName,
 }: {
-  content: Partial<Content>;
+  content: SeoEntity;
   onUpdate: (field: string, value: any) => void;
   showPreview: boolean;
   siteUrl: string;
   siteName: string;
 }) {
-  const seoTitle = content.seo_title || content.title || '';
-  const seoDescription = content.seo_description || content.excerpt || '';
+  const contentTitle = 'title' in content ? content.title : ('name' in content ? content.name : '');
+  const contentExcerpt = 'excerpt' in content ? content.excerpt : ('description' in content ? content.description : '');
+  
+  const seoTitle = content.seo_title || contentTitle || '';
+  const seoDescription = content.seo_description || contentExcerpt || '';
   
   const titleLength = seoTitle.length;
   const descLength = seoDescription.length;
@@ -191,13 +201,13 @@ function GeneralTab({
           type="text"
           value={content.seo_title || ''}
           onChange={(e) => onUpdate('seo_title', e.target.value)}
-          placeholder={content.title || 'Titre de la page'}
+          placeholder={contentTitle || 'Titre de la page'}
           maxLength={70}
         />
         <HelperText>
           {content.seo_title
             ? 'Titre SEO personnalisé'
-            : `Fallback: "${content.title || 'Titre de la page'}"`}
+            : `Fallback: "${contentTitle || 'Titre de la page'}"`}
         </HelperText>
       </div>
       
@@ -211,15 +221,15 @@ function GeneralTab({
           id="seo_description"
           value={content.seo_description || ''}
           onChange={(e) => onUpdate('seo_description', e.target.value)}
-          placeholder={content.excerpt || 'Description de la page...'}
+          placeholder={contentExcerpt || 'Description de la page...'}
           rows={3}
           maxLength={200}
         />
         <HelperText>
           {content.seo_description
             ? 'Description personnalisée'
-            : content.excerpt
-            ? 'Fallback: extrait'
+            : contentExcerpt
+            ? 'Fallback: extrait/description'
             : 'Aucune description définie'}
         </HelperText>
       </div>
@@ -230,7 +240,7 @@ function GeneralTab({
         <Input
           id="seo_focus_keyword"
           type="text"
-          value={content.seo_focus_keyword || ''}
+          value={(content as any).seo_focus_keyword || ''}
           onChange={(e) => onUpdate('seo_focus_keyword', e.target.value)}
           placeholder="ex: marketing digital"
         />
@@ -251,12 +261,15 @@ function SocialTab({
   onUpdate,
   showPreview,
 }: {
-  content: Partial<Content>;
+  content: SeoEntity;
   onUpdate: (field: string, value: any) => void;
   showPreview: boolean;
 }) {
-  const ogTitle = content.seo_og_title || content.seo_title || content.title || '';
-  const ogDescription = content.seo_og_description || content.seo_description || content.excerpt || '';
+  const contentTitle = 'title' in content ? content.title : ('name' in content ? content.name : '');
+  const contentExcerpt = 'excerpt' in content ? content.excerpt : ('description' in content ? content.description : '');
+  
+  const ogTitle = content.seo_og_title || content.seo_title || contentTitle || '';
+  const ogDescription = content.seo_og_description || content.seo_description || contentExcerpt || '';
   const ogImage = content.seo_og_image || null;
   
   return (
@@ -282,7 +295,7 @@ function SocialTab({
           type="text"
           value={content.seo_og_title || ''}
           onChange={(e) => onUpdate('seo_og_title', e.target.value)}
-          placeholder={content.seo_title || content.title || 'Titre'}
+          placeholder={content.seo_title || contentTitle || 'Titre'}
         />
         <HelperText>
           {content.seo_og_title ? 'Titre OG personnalisé' : 'Fallback: titre SEO'}
@@ -296,7 +309,7 @@ function SocialTab({
           id="seo_og_description"
           value={content.seo_og_description || ''}
           onChange={(e) => onUpdate('seo_og_description', e.target.value)}
-          placeholder={content.seo_description || content.excerpt || 'Description'}
+          placeholder={content.seo_description || contentExcerpt || 'Description'}
           rows={3}
         />
         <HelperText>
@@ -343,9 +356,10 @@ function AdvancedTab({
   content,
   onUpdate,
 }: {
-  content: Partial<Content>;
+  content: SeoEntity;
   onUpdate: (field: string, value: any) => void;
 }) {
+  const contentTitle = 'title' in content ? content.title : ('name' in content ? content.name : '');
   return (
     <div className="space-y-6">
       {/* Canonical URL */}
@@ -402,7 +416,7 @@ function AdvancedTab({
           type="text"
           value={(content as any).seo_breadcrumb_title || ''}
           onChange={(e) => onUpdate('seo_breadcrumb_title', e.target.value)}
-          placeholder={content.title || 'Titre de la page'}
+          placeholder={contentTitle || 'Titre de la page'}
         />
         <HelperText>
           Version courte pour les breadcrumbs (optionnel)

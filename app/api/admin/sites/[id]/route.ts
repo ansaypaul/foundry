@@ -11,7 +11,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, theme_key, theme_id, status } = body;
+    const { name, theme_key, theme_id, theme_config, status } = body;
 
     // Vérifier que le site existe
     const existingSite = await getSiteById(id);
@@ -27,25 +27,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       ...(name && { name: name.trim() }),
       ...(theme_key && { theme_key }),
       ...(theme_id !== undefined && { theme_id }),
+      ...(theme_config !== undefined && { theme_config }),
       ...(status && { status }),
     });
 
-    // Si le thème a changé, invalider toutes les pages publiques du site
-    if (theme_id !== undefined) {
-      // Récupérer tous les domaines du site
-      const supabase = getSupabaseAdmin();
-      const { data: domains } = await supabase
-        .from('domains')
-        .select('hostname')
-        .eq('site_id', id);
-
-      // Invalider le cache pour chaque domaine
-      if (domains && domains.length > 0) {
-        // On invalide le layout public
-        revalidatePath('/(public)', 'layout');
-        // On invalide aussi toutes les pages
-        revalidatePath('/', 'page');
-      }
+    // Si le thème ou la config a changé, invalider TOUT le cache du site
+    if (theme_id !== undefined || theme_config !== undefined) {
+      // Invalider agressivement tout le cache
+      revalidatePath('/', 'layout'); // Invalide tout depuis la racine
+      revalidatePath('/(public)', 'layout'); // Layout public
+      revalidatePath('/[slug]', 'page'); // Articles
+      revalidatePath('/category/[slug]', 'page'); // Catégories
+      revalidatePath('/tag/[slug]', 'page'); // Tags
     }
 
     return NextResponse.json({ site: updatedSite });

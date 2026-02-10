@@ -1,50 +1,38 @@
 import { MetadataRoute } from 'next';
-import { getAllSites } from '@/lib/db/queries';
-import { getSupabaseAdmin } from '@/lib/db/client';
-import { getDomainsBySiteId } from '@/lib/db/queries';
+import { headers } from 'next/headers';
+import { getSiteByHostname } from '@/lib/db/queries';
 
+/**
+ * Sitemap Index - Liste tous les sous-sitemaps du site actuel
+ */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const sites = await getAllSites();
-  const supabase = getSupabaseAdmin();
+  const headersList = await headers();
+  const hostname = headersList.get('host') || '';
   
-  const entries: MetadataRoute.Sitemap = [];
-
-  for (const site of sites) {
-    // Get primary domain
-    const domains = await getDomainsBySiteId(site.id);
-    const primaryDomain = domains.find(d => d.is_primary) || domains[0];
-    
-    if (!primaryDomain) continue;
-
-    const baseUrl = `https://${primaryDomain.hostname}`;
-
-    // Get all published content for this site
-    const { data: contents } = await supabase
-      .from('content')
-      .select('slug, type, updated_at')
-      .eq('site_id', site.id)
-      .eq('status', 'published');
-
-    // Add homepage
-    entries.push({
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 1,
-    });
-
-    // Add content pages
-    if (contents) {
-      for (const content of contents) {
-        entries.push({
-          url: `${baseUrl}/${content.slug}`,
-          lastModified: new Date(content.updated_at),
-          changeFrequency: content.type === 'post' ? 'weekly' : 'monthly',
-          priority: content.type === 'post' ? 0.8 : 0.6,
-        });
-      }
-    }
+  // Retirer le port si présent (ex: localhost:3000 -> localhost)
+  const cleanHostname = hostname.split(':')[0];
+  
+  const site = await getSiteByHostname(cleanHostname);
+  
+  if (!site) {
+    return [];
   }
 
-  return entries;
+  const baseUrl = `https://${cleanHostname}`;
+
+  // Index des sous-sitemaps comme Rank Math
+  return [
+    {
+      url: `${baseUrl}/page-sitemap.xml`,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/post-sitemap.xml`,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/category-sitemap.xml`,
+      lastModified: new Date(),
+    },
+  ];
 }

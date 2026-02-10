@@ -361,22 +361,26 @@ function resolveTwitter(
 function resolveSchema(context: SeoContext, meta: ResolvedSeoMeta) {
   const schemas: any[] = [];
 
-  // Always include WebSite
-  schemas.push({
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: context.siteName,
-    url: context.siteUrl,
-    description: context.settings?.site_description || undefined,
-  });
+  // WebSite schema (si activé)
+  if (context.settings?.schema_enable_website !== false) {
+    schemas.push({
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: context.siteName,
+      url: context.siteUrl,
+      description: context.settings?.site_description || undefined,
+    });
+  }
 
-  // Article schema for posts
+  // Article schema for posts (type configurable)
   if (context.entityType === 'content' && context.entity) {
     const content = context.entity as Content;
     if (content.type === 'post' && content.status === 'published') {
+      const articleType = context.settings?.schema_article_type || 'Article';
+      
       schemas.push({
         '@context': 'https://schema.org',
-        '@type': 'Article',
+        '@type': articleType,
         headline: meta.title,
         description: meta.description,
         image: meta.og.image || undefined,
@@ -392,12 +396,27 @@ function resolveSchema(context: SeoContext, meta: ResolvedSeoMeta) {
               name: context.author.name,
             }
           : undefined,
+        publisher: context.settings?.organization_name
+          ? {
+              '@type': 'Organization',
+              name: context.settings.organization_name,
+              logo: context.settings.organization_logo
+                ? {
+                    '@type': 'ImageObject',
+                    url: context.settings.organization_logo,
+                  }
+                : undefined,
+            }
+          : undefined,
       });
     }
   }
 
-  // Organization schema
-  if (context.settings?.organization_name) {
+  // Organization schema (si activé)
+  if (
+    context.settings?.schema_enable_organization !== false &&
+    context.settings?.organization_name
+  ) {
     schemas.push({
       '@context': 'https://schema.org',
       '@type': 'Organization',
