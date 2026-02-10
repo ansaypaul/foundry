@@ -2,12 +2,12 @@ import Link from 'next/link';
 import { getSiteById } from '@/lib/db/queries';
 import { getThemeById } from '@/lib/db/themes-queries';
 import { getMenuByLocation } from '@/lib/db/menus-queries';
-import SiteMenu from '@/app/(public)/components/SiteMenu';
-import SiteHeader from '@/app/(public)/components/SiteHeader';
-import ThemedSiteHeader from '@/app/(public)/components/ThemedSiteHeader';
-import MobileMenu from '@/app/(public)/components/MobileMenu';
-import { ThemeProvider } from '@/app/(public)/themes/ThemeProvider';
-import '@/app/(public)/content-styles.css';
+import SiteMenu from '@/app/components/SiteMenu';
+import SiteHeader from '@/app/components/SiteHeader';
+import ThemedSiteHeader from '@/app/components/ThemedSiteHeader';
+import MobileMenu from '@/app/components/MobileMenu';
+import { ThemeProvider } from '@/app/themes/ThemeProvider';
+import '@/app/content-styles.css';
 
 interface LayoutProps {
   children: React.ReactNode;

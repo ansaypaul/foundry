@@ -1,8 +1,8 @@
 import { getPublishedPostsBySiteId, getCategoriesWithCount, getSiteById } from '@/lib/db/queries';
 import { getThemeById } from '@/lib/db/themes-queries';
 import { getSupabaseAdmin } from '@/lib/db/client';
-import PreviewLink from '../../components/PreviewLink';
-import SingleLayout from '../../themes/layouts/SingleLayout';
+import PreviewLink from '@/app/components/PreviewLink';
+import SingleLayout from '@/app/themes/layouts/SingleLayout';
 import Image from 'next/image';
 import type { Content } from '@/lib/db/types';
 
@@ -21,7 +21,7 @@ export default async function ContentView({
   isPreview = false,
   isAuthenticated = false 
 }: ContentViewProps) {
-  // Charger l'image à la une si présente
+  // Charger l'image ├á la une si pr├®sente
   let featuredMedia: any = null;
   if (content.featured_media_id) {
     const supabase = getSupabaseAdmin();
@@ -34,7 +34,7 @@ export default async function ContentView({
     featuredMedia = data;
   }
 
-  // Récupérer la config du thème pour les articles
+  // R├®cup├®rer la config du th├¿me pour les articles
   const fullSite = await getSiteById(siteId);
   const theme = fullSite?.theme_id ? await getThemeById(fullSite.theme_id) : null;
   
@@ -52,7 +52,7 @@ export default async function ContentView({
   const themeModulesConfig = (theme as any)?.modules_config?.single;
   const singleConfig = siteModulesConfig || themeModulesConfig || defaultSingleConfig;
 
-  // Récupérer les données pour la sidebar
+  // R├®cup├®rer les donn├®es pour la sidebar
   const recentPosts = content.type === 'post' ? await getPublishedPostsBySiteId(siteId, 5) : [];
   const categories = content.type === 'post' ? await getCategoriesWithCount(siteId) : [];
 
@@ -82,7 +82,7 @@ export default async function ContentView({
             )}
             {isPreview && isAuthenticated && content.status !== 'published' && (
               <span className="px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-full font-medium">
-                👁️ Preview - {content.status === 'draft' ? 'Brouillon' : 'Programmé'}
+                ­ƒæü´©Å Preview - {content.status === 'draft' ? 'Brouillon' : 'Programm├®'}
               </span>
             )}
           </div>
@@ -98,7 +98,7 @@ export default async function ContentView({
             {content.title}
           </h1>
 
-          {/* Métadonnées pour les articles */}
+          {/* M├®tadonn├®es pour les articles */}
           {content.type === 'post' && content.published_at && (
             <div 
               className="flex items-center space-x-4 text-sm mb-8 pb-8"
@@ -131,7 +131,7 @@ export default async function ContentView({
             </div>
           )}
 
-          {/* Image à la une */}
+          {/* Image ├á la une */}
           {featuredMedia && (
             <div className="relative w-full aspect-video mb-8 rounded-lg overflow-hidden">
               <Image
@@ -169,7 +169,7 @@ export default async function ContentView({
               className="inline-flex items-center font-medium hover:opacity-80 transition-opacity"
               style={{ color: 'var(--color-primary)' }}
             >
-              ← Retour aux articles
+              ÔåÉ Retour aux articles
             </PreviewLink>
           </div>
         </article>

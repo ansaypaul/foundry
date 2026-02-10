@@ -5,7 +5,7 @@ import { getSupabaseAdmin } from '@/lib/db/client';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { resolveSeoMeta, generateMetadata as generateSeoMetadata, getSeoSettings } from '@/lib/core/seo';
-import PageLayout from '@/app/(public)/themes/layouts/PageLayout';
+import PageLayout from '@/app/themes/layouts/PageLayout';
 import type { Theme } from '@/lib/db/theme-types';
 export const revalidate = 600; // 10 minutes
 

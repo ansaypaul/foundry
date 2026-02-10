@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { resolveSeoMeta, generateMetadata as generateSeoMetadata } from '@/lib/core/seo';
-import CategoryView from '@/app/(public)/[slug]/components/CategoryView';
-import ContentView from '@/app/(public)/[slug]/components/ContentView';
+import CategoryView from '@/app/components/CategoryView';
+import ContentView from '@/app/components/ContentView';
 import { getPageData } from '@/lib/cached-queries';
 
 export const revalidate = 300; // 5 minutes

@@ -2,7 +2,7 @@ import { getSiteById, getPublishedPostsBySiteId, getCategoriesWithCount, getPrim
 import { getThemeById } from '@/lib/db/themes-queries';
 import type { Metadata } from 'next';
 import { resolveSeoMeta, generateMetadata as generateSeoMetadata, getSeoSettings } from '@/lib/core/seo';
-import PageLayout from '@/app/(public)/themes/layouts/PageLayout';
+import PageLayout from '@/app/themes/layouts/PageLayout';
 import type { Theme } from '@/lib/db/theme-types';
 export const revalidate = 120; // 2 minutes
 

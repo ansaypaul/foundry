@@ -1,7 +1,7 @@
 import { getContentByTermId, getCategoriesWithCount, getSiteById } from '@/lib/db/queries';
 import { getThemeById } from '@/lib/db/themes-queries';
 import { getSupabaseAdmin } from '@/lib/db/client';
-import PageLayout from '../../themes/layouts/PageLayout';
+import PageLayout from '@/app/themes/layouts/PageLayout';
 import type { Theme } from '@/lib/db/theme-types';
 import type { Term } from '@/lib/db/types';
 
@@ -12,16 +12,16 @@ interface CategoryViewProps {
 }
 
 export default async function CategoryView({ category, siteId, siteName }: CategoryViewProps) {
-  // Récupérer les articles de cette catégorie (enrichis avec auteur + image)
+  // R├®cup├®rer les articles de cette cat├®gorie (enrichis avec auteur + image)
   const rawPosts = await getContentByTermId(category.id);
   
-  // Enrichir avec les données manquantes (auteur, image, catégorie)
+  // Enrichir avec les donn├®es manquantes (auteur, image, cat├®gorie)
   const supabase = getSupabaseAdmin();
   const enrichedPosts = await Promise.all(
     rawPosts.map(async (post: any) => {
-      // Récupérer l'auteur
+      // R├®cup├®rer l'auteur
       const { data: author } = await supabase.from('users').select('name').eq('id', post.author_id).single();
-      // Récupérer l'image
+      // R├®cup├®rer l'image
       const { data: media } = post.featured_media_id 
         ? await supabase.from('media').select('url').eq('id', post.featured_media_id).single()
         : { data: null };
@@ -35,7 +35,7 @@ export default async function CategoryView({ category, siteId, siteName }: Categ
     })
   );
 
-  // Récupérer le thème et la config
+  // R├®cup├®rer le th├¿me et la config
   const fullSite = await getSiteById(siteId);
   const theme = fullSite?.theme_id ? await getThemeById(fullSite.theme_id) : null;
   
@@ -61,12 +61,12 @@ export default async function CategoryView({ category, siteId, siteName }: Categ
   const themeModulesConfig = (theme as any)?.modules_config?.category;
   const categoryConfig = siteModulesConfig || themeModulesConfig || defaultConfig;
 
-  // Récupérer les catégories pour la sidebar
+  // R├®cup├®rer les cat├®gories pour la sidebar
   const categories = await getCategoriesWithCount(siteId);
 
   return (
     <div>
-      {/* Header catégorie */}
+      {/* Header cat├®gorie */}
       <div 
         className="py-12 mb-8"
         style={{ 
@@ -82,7 +82,7 @@ export default async function CategoryView({ category, siteId, siteName }: Categ
               color: 'white'
             }}
           >
-            Catégorie
+            Cat├®gorie
           </span>
           <h1 
             className="text-4xl font-bold mb-4"
