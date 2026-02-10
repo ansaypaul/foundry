@@ -37,7 +37,7 @@ export default function PostsListModule({ posts, config }: Props) {
 
   return (
     <div className={spacing}>
-      {posts.map((post) => (
+      {posts.map((post, index) => (
         <PostCard
           key={post.id}
           post={post}
@@ -46,6 +46,7 @@ export default function PostsListModule({ posts, config }: Props) {
           showExcerpt={showExcerpt}
           showDate={showDate}
           showAuthor={true}
+          priority={index === 0}
         />
       ))}
     </div>

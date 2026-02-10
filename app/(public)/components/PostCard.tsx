@@ -19,6 +19,7 @@ interface Props {
   showExcerpt?: boolean;
   showDate?: boolean;
   showAuthor?: boolean;
+  priority?: boolean; // Pour optimiser le LCP sur la première image
 }
 
 export default function PostCard({ 
@@ -27,7 +28,8 @@ export default function PostCard({
   showCategory = true,
   showExcerpt = true,
   showDate = true,
-  showAuthor = true
+  showAuthor = true,
+  priority = false
 }: Props) {
   return (
     <article 
@@ -45,6 +47,8 @@ export default function PostCard({
             alt={post.title}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
+            priority={priority}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </PreviewLink>
       )}

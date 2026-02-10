@@ -43,11 +43,12 @@ export default function PostsGridModule({ posts, config }: Props) {
 
   return (
     <div className={`grid ${gridCols} gap-6`}>
-      {displayedPosts.map((post) => (
+      {displayedPosts.map((post, index) => (
         <PostCard
           key={post.id}
           post={post}
           showImage={showImage}
+          priority={index === 0}
           showCategory={showCategories}
           showExcerpt={showExcerpt}
           showDate={showDate}
