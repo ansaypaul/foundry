@@ -9,6 +9,9 @@ import MobileMenu from '@/app/components/MobileMenu';
 import { ThemeProvider } from '@/app/themes/ThemeProvider';
 import '@/app/content-styles.css';
 
+export const revalidate = 300; // 5 minutes - active ISR pour tout le segment
+export const dynamic = 'force-static'; // Force ISR même avec params dynamiques
+
 interface LayoutProps {
   children: React.ReactNode;
   params: Promise<{ siteId: string }>;
