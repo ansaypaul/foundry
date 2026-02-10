@@ -1,15 +1,14 @@
-import { headers } from 'next/headers';
-import { getSiteByHostname, getDomainsBySiteId } from '@/lib/db/queries';
+import { getSiteById, getDomainsBySiteId } from '@/lib/db/queries';
 import { getSupabaseAdmin } from '@/lib/db/client';
 import { NextResponse } from 'next/server';
-export const revalidate = 3600;
+export const revalidate = 3600; // 1 hour
 
-export async function GET() {
-  const headersList = await headers();
-  const hostname = headersList.get('host') || '';
-  const cleanHostname = hostname.split(':')[0];
-  
-  const site = await getSiteByHostname(cleanHostname);
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ siteId: string }> }
+) {
+  const { siteId } = await params;
+  const site = await getSiteById(siteId);
   
   if (!site) {
     // Robots.txt par défaut si le site n'est pas trouvé
@@ -25,7 +24,7 @@ export async function GET() {
 
   const domains = await getDomainsBySiteId(site.id);
   const primaryDomain = domains.find(d => d.is_primary) || domains[0];
-  const baseUrl = primaryDomain ? `https://${primaryDomain.hostname}` : `https://${cleanHostname}`;
+  const baseUrl = primaryDomain ? `https://${primaryDomain.hostname}` : '';
   
   const supabase = getSupabaseAdmin();
 
