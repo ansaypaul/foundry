@@ -19,12 +19,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
   
-  // Auth admin
+  // Auth admin - SEULEMENT si on est vraiment sur /admin
   if (request.nextUrl.pathname.startsWith('/admin')) {
     const session = request.cookies.get('foundry-session');
     if (!session) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
+    // Pour /admin, on s'arrête là (évite que cookies() affecte les autres routes)
+    return NextResponse.next();
   }
 
   // Preview mode
@@ -41,9 +43,8 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // Skip pour routes internes
+  // Skip pour routes internes (admin déjà géré au-dessus)
   if (
-    request.nextUrl.pathname.startsWith('/admin') ||
     request.nextUrl.pathname.startsWith('/api') ||
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/sites/') ||
