@@ -1,5 +1,6 @@
 import { getSiteById } from '@/lib/db/queries';
 import { getAuthorById } from '@/lib/db/authors-queries';
+import { getSupabaseAdmin } from '@/lib/db/client';
 import { notFound } from 'next/navigation';
 import AuthorForm from '../AuthorForm';
 
@@ -25,6 +26,26 @@ export default async function EditAuthorPage({ params }: PageProps) {
   if (author.site_id !== siteId) {
     notFound();
   }
+
+  // Charger les métadonnées SEO de l'auteur
+  const supabase = getSupabaseAdmin();
+  const { data: seoMeta } = await supabase
+    .from('seo_meta')
+    .select('*')
+    .eq('entity_type', 'author')
+    .eq('entity_id', authorId)
+    .maybeSingle();
+
+  // Merger les données SEO dans author
+  const authorWithSeo = seoMeta
+    ? (() => {
+        const { id, entity_type, entity_id, created_at, updated_at, ...seoFields } = seoMeta;
+        return {
+          ...author,
+          ...seoFields,
+        };
+      })()
+    : author;
   
   return (
     <div>
@@ -37,7 +58,7 @@ export default async function EditAuthorPage({ params }: PageProps) {
         </p>
       </div>
       
-      <AuthorForm siteId={siteId} author={author} mode="edit" />
+      <AuthorForm siteId={siteId} siteName={site.name} author={authorWithSeo} mode="edit" />
     </div>
   );
 }

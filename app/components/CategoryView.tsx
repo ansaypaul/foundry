@@ -94,15 +94,14 @@ export default async function CategoryView({ category, siteId, siteName }: Categ
             {category.name}
           </h1>
           {category.description && (
-            <p 
-              className="text-xl"
+            <div 
+              className="text-xl prose prose-lg max-w-none"
               style={{ 
                 color: 'var(--color-text)',
                 opacity: 0.8
               }}
-            >
-              {category.description}
-            </p>
+              dangerouslySetInnerHTML={{ __html: category.description }}
+            />
           )}
         </div>
       </div>

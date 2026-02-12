@@ -84,7 +84,7 @@ export default function MobileMenu({ siteName, menuItems }: MobileMenuProps) {
               <SiteMenuClient 
                 items={menuItems}
                 location="header" 
-                className="flex flex-col space-y-2"
+                isMobile={true}
                 onClick={() => setIsOpen(false)}
               />
             </div>

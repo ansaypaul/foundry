@@ -11,7 +11,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, theme_key, theme_id, theme_config, status } = body;
+    const { name, theme_key, theme_id, theme_config, status, language, country, site_type, automation_level, ambition_level, description } = body;
 
     // Vérifier que le site existe
     const existingSite = await getSiteById(id);
@@ -22,6 +22,37 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // Validation des enums si fournis
+    if (site_type) {
+      const validSiteTypes = ['niche_passion', 'news_media', 'gaming_popculture', 'affiliate_guides', 'lifestyle'];
+      if (!validSiteTypes.includes(site_type)) {
+        return NextResponse.json(
+          { error: 'Type de site invalide' },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (automation_level) {
+      const validAutomationLevels = ['manual', 'ai_assisted', 'ai_auto'];
+      if (!validAutomationLevels.includes(automation_level)) {
+        return NextResponse.json(
+          { error: 'Niveau d\'automatisation invalide' },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (ambition_level) {
+      const validAmbitionLevels = ['auto', 'starter', 'growth', 'factory'];
+      if (!validAmbitionLevels.includes(ambition_level)) {
+        return NextResponse.json(
+          { error: 'Niveau d\'ambition invalide' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Mettre à jour le site
     const updatedSite = await updateSite(id, {
       ...(name && { name: name.trim() }),
@@ -29,6 +60,12 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       ...(theme_id !== undefined && { theme_id }),
       ...(theme_config !== undefined && { theme_config }),
       ...(status && { status }),
+      ...(language && { language }),
+      ...(country && { country }),
+      ...(site_type && { site_type }),
+      ...(automation_level && { automation_level }),
+      ...(ambition_level && { ambition_level }),
+      ...(description !== undefined && { description: description ? description.trim() : null }),
     });
 
     // Si le thème ou la config a changé, invalider TOUT le cache du site

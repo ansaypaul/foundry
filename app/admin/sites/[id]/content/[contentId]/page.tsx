@@ -1,6 +1,7 @@
 import { getSiteById } from '@/lib/db/queries';
 import { getSupabaseAdmin } from '@/lib/db/client';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import ContentEditForm from '@/app/admin/content/[id]/ContentEditForm';
 
 interface PageProps {
@@ -15,7 +16,7 @@ export default async function EditContentPage({ params }: PageProps) {
     notFound();
   }
 
-  // Charger le contenu avec les infos du site
+  // Charger le contenu avec les infos du site et le job AI si applicable
   const supabase = getSupabaseAdmin();
   const { data: content } = await supabase
     .from('content')
@@ -25,6 +26,18 @@ export default async function EditContentPage({ params }: PageProps) {
     `)
     .eq('id', contentId)
     .single();
+
+  // Load AI job if article was AI-generated
+  let aiJob = null;
+  if (content?.ai_job_id) {
+    const { data } = await supabase
+      .from('ai_job')
+      .select('id, status, retries, finished_at, created_at')
+      .eq('id', content.ai_job_id)
+      .single();
+    
+    aiJob = data;
+  }
 
   if (!content || content.site_id !== id) {
     notFound();
@@ -98,6 +111,32 @@ export default async function EditContentPage({ params }: PageProps) {
         <h1 className="text-3xl font-bold text-white">Modifier le contenu</h1>
         <p className="text-gray-400 mt-2">{content.title}</p>
       </div>
+
+      {/* AI Generation Badge */}
+      {aiJob && (
+        <div className="mb-6 bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/30 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="text-2xl">🤖</div>
+              <div>
+                <div className="text-blue-300 font-semibold">
+                  Article généré par IA
+                </div>
+                <div className="text-sm text-blue-200 mt-1">
+                  Généré le {new Date(aiJob.finished_at || aiJob.created_at).toLocaleString('fr-FR')}
+                  {aiJob.retries > 0 && ` · ${aiJob.retries} retry(s)`}
+                </div>
+              </div>
+            </div>
+            <Link
+              href={`/admin/sites/${id}/ai-jobs/${aiJob.id}`}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              Voir les détails →
+            </Link>
+          </div>
+        </div>
+      )}
 
       <ContentEditForm 
         content={contentWithSeo} 

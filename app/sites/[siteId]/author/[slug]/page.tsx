@@ -136,9 +136,10 @@ export default async function AuthorPage({ params }: PageProps) {
               </h1>
               
               {author.bio && (
-                <p className="text-lg text-gray-600 mb-4">
-                  {author.bio}
-                </p>
+                <div 
+                  className="text-lg text-gray-600 mb-4 prose prose-lg max-w-none"
+                  dangerouslySetInnerHTML={{ __html: author.bio }}
+                />
               )}
               
               {/* Statistiques */}

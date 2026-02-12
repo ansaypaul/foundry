@@ -20,6 +20,14 @@ export default function NewSitePage() {
   const [themeId, setThemeId] = useState<string>('');
   const [status, setStatus] = useState('active');
   const [themes, setThemes] = useState<Theme[]>([]);
+  
+  // AI Bootstrap fields
+  const [language, setLanguage] = useState('fr');
+  const [country, setCountry] = useState('FR');
+  const [siteType, setSiteType] = useState('niche_passion');
+  const [automationLevel, setAutomationLevel] = useState('manual');
+  const [ambitionLevel, setAmbitionLevel] = useState('auto');
+  const [description, setDescription] = useState('');
 
   // Charger les thèmes
   useEffect(() => {
@@ -56,6 +64,13 @@ export default function NewSitePage() {
           name,
           theme_id: themeId || null,
           status,
+          language,
+          country,
+          site_type: siteType,
+          automation_level: automationLevel,
+          ambition_level: ambitionLevel,
+          description: description.trim() || null,
+          setup_status: 'draft', // All new sites start in draft mode
         }),
       });
 
@@ -66,7 +81,7 @@ export default function NewSitePage() {
 
       const { site } = await response.json();
       
-      // Rediriger vers la page d'édition du site pour ajouter des domaines
+      // Rediriger vers la page du site (qui affichera le banner si draft)
       router.push(`/admin/sites/${site.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
@@ -146,6 +161,136 @@ export default function NewSitePage() {
               </Select>
               <HelperText>
                 Un site en pause ne sera pas accessible publiquement.
+              </HelperText>
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-gray-700 pt-6">
+              <h3 className="text-lg font-semibold text-white mb-1">Configuration du site</h3>
+              <p className="text-sm text-gray-400 mb-4">
+                Ces paramètres prépareront le site pour la génération de contenu.
+              </p>
+            </div>
+
+            {/* Language */}
+            <div>
+              <Label htmlFor="language">Langue du site *</Label>
+              <Select
+                id="language"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                required
+              >
+                <option value="fr">Français</option>
+                <option value="en">English</option>
+                <option value="nl">Nederlands</option>
+                <option value="de">Deutsch</option>
+                <option value="es">Español</option>
+                <option value="it">Italiano</option>
+                <option value="pt">Português</option>
+              </Select>
+              <HelperText>
+                La langue principale du contenu du site.
+              </HelperText>
+            </div>
+
+            {/* Country */}
+            <div>
+              <Label htmlFor="country">Pays cible *</Label>
+              <Select
+                id="country"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                required
+              >
+                <option value="FR">France</option>
+                <option value="BE">Belgique</option>
+                <option value="CH">Suisse</option>
+                <option value="CA">Canada</option>
+                <option value="US">États-Unis</option>
+                <option value="GB">Royaume-Uni</option>
+                <option value="DE">Allemagne</option>
+                <option value="ES">Espagne</option>
+                <option value="IT">Italie</option>
+                <option value="NL">Pays-Bas</option>
+                <option value="PT">Portugal</option>
+                <option value="JP">Japon</option>
+              </Select>
+              <HelperText>
+                Le pays principal visé par le contenu.
+              </HelperText>
+            </div>
+
+            {/* Site Type */}
+            <div>
+              <Label htmlFor="site_type">Type de site *</Label>
+              <Select
+                id="site_type"
+                value={siteType}
+                onChange={(e) => setSiteType(e.target.value)}
+                required
+              >
+                <option value="niche_passion">Niche / Passion</option>
+                <option value="news_media">Actualités / Média</option>
+                <option value="gaming_popculture">Gaming / Pop Culture</option>
+                <option value="affiliate_guides">Guides / Affiliation</option>
+                <option value="lifestyle">Lifestyle</option>
+              </Select>
+              <HelperText>
+                Le type de site influence la stratégie de contenu.
+              </HelperText>
+            </div>
+
+            {/* Automation Level */}
+            <div>
+              <Label htmlFor="automation_level">Niveau d'automatisation *</Label>
+              <Select
+                id="automation_level"
+                value={automationLevel}
+                onChange={(e) => setAutomationLevel(e.target.value)}
+                required
+              >
+                <option value="manual">Manuel</option>
+                <option value="ai_assisted">Assisté par IA</option>
+                <option value="ai_auto">Automatique (IA)</option>
+              </Select>
+              <HelperText>
+                Définit le niveau d'intervention de l'IA dans la création de contenu.
+              </HelperText>
+            </div>
+
+            {/* Ambition Level */}
+            <div>
+              <Label htmlFor="ambition_level">Niveau d'ambition *</Label>
+              <Select
+                id="ambition_level"
+                value={ambitionLevel}
+                onChange={(e) => setAmbitionLevel(e.target.value)}
+                required
+              >
+                <option value="auto">Auto (recommandé)</option>
+                <option value="starter">Starter</option>
+                <option value="growth">Growth</option>
+                <option value="factory">Factory</option>
+              </Select>
+              <HelperText>
+                Définit l'échelle du site (nombre d'auteurs, catégories, vélocité de publication).
+              </HelperText>
+            </div>
+
+            {/* Description */}
+            <div>
+              <Label htmlFor="description">Description du site</Label>
+              <textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+                className="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                placeholder="Décrivez brièvement la niche et l'objectif du site..."
+              />
+              <HelperText>
+                Une courte description pour guider la génération de contenu (optionnel).
               </HelperText>
             </div>
           </div>

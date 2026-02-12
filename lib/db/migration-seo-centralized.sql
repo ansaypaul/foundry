@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS seo_meta (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     
     -- Référence polymorphique
-    entity_type TEXT NOT NULL CHECK (entity_type IN ('content', 'term', 'site')),
+    entity_type TEXT NOT NULL CHECK (entity_type IN ('content', 'term', 'site', 'author')),
     entity_id UUID NOT NULL,
     
     -- Title & Description
@@ -63,8 +63,8 @@ CREATE TRIGGER update_seo_meta_updated_at
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Comments
-COMMENT ON TABLE seo_meta IS 'Métadonnées SEO centralisées pour toutes les entités (content, terms, sites)';
-COMMENT ON COLUMN seo_meta.entity_type IS 'Type d''entité : content, term, site';
+COMMENT ON TABLE seo_meta IS 'Métadonnées SEO centralisées pour toutes les entités (content, terms, sites, authors)';
+COMMENT ON COLUMN seo_meta.entity_type IS 'Type d''entité : content, term, site, author';
 COMMENT ON COLUMN seo_meta.entity_id IS 'ID de l''entité référencée';
 COMMENT ON COLUMN seo_meta.seo_title IS 'Custom SEO title (fallback: entity title/name)';
 COMMENT ON COLUMN seo_meta.seo_description IS 'Custom meta description';

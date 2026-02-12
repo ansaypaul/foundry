@@ -4,14 +4,17 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Author } from '@/lib/db/types';
 import MediaUploader from '@/app/admin/components/MediaUploader';
+import { SeoBox } from '@/app/admin/components/SeoBox';
+import RichTextEditor from '@/app/admin/components/RichTextEditor';
 
 interface AuthorFormProps {
   siteId: string;
+  siteName?: string;
   author?: Author;
   mode: 'create' | 'edit';
 }
 
-export default function AuthorForm({ siteId, author, mode }: AuthorFormProps) {
+export default function AuthorForm({ siteId, siteName = 'Site', author, mode }: AuthorFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +31,18 @@ export default function AuthorForm({ siteId, author, mode }: AuthorFormProps) {
   const [linkedinUrl, setLinkedinUrl] = useState(author?.linkedin_url || '');
   const [instagramUsername, setInstagramUsername] = useState(author?.instagram_username || '');
   const [githubUsername, setGithubUsername] = useState(author?.github_username || '');
+  
+  // État pour les données SEO
+  const [seoData, setSeoData] = useState({
+    ...author,
+    name: displayName,
+    description: bio,
+  });
+  
+  // Met à jour seoData quand les champs changent
+  const updateSeoData = (field: string, value: any) => {
+    setSeoData(prev => ({ ...prev, [field]: value }));
+  };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +70,16 @@ export default function AuthorForm({ siteId, author, mode }: AuthorFormProps) {
           linkedin_url: linkedinUrl || null,
           instagram_username: instagramUsername || null,
           github_username: githubUsername || null,
+          // Données SEO
+          seo_title: seoData.seo_title || null,
+          seo_description: seoData.seo_description || null,
+          seo_canonical: seoData.seo_canonical || null,
+          seo_robots_index: seoData.seo_robots_index ?? true,
+          seo_robots_follow: seoData.seo_robots_follow ?? true,
+          seo_og_title: seoData.seo_og_title || null,
+          seo_og_description: seoData.seo_og_description || null,
+          seo_og_image: seoData.seo_og_image || null,
+          seo_twitter_card: seoData.seo_twitter_card || null,
         }),
       });
       
@@ -93,7 +118,10 @@ export default function AuthorForm({ siteId, author, mode }: AuthorFormProps) {
             <input
               type="text"
               value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
+              onChange={(e) => {
+                setDisplayName(e.target.value);
+                updateSeoData('name', e.target.value);
+              }}
               required
               className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-600 focus:border-transparent"
               placeholder="Paul Dupont"
@@ -123,16 +151,18 @@ export default function AuthorForm({ siteId, author, mode }: AuthorFormProps) {
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Biographie
             </label>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              rows={4}
-              className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-              placeholder="Expert en développement web avec plus de 10 ans d'expérience..."
-            />
-            <p className="mt-1 text-xs text-gray-400">
-              Présentation de l'auteur affichée sur sa page et dans les articles
+            <p className="mt-1 mb-2 text-xs text-gray-400">
+              Présentation de l'auteur affichée sur sa page et dans les articles. Supporte le HTML enrichi.
             </p>
+            <RichTextEditor
+              content={bio}
+              onChange={(html) => {
+                setBio(html);
+                updateSeoData('description', html);
+              }}
+              placeholder="Expert en développement web avec plus de 10 ans d'expérience..."
+              siteId={siteId}
+            />
           </div>
           
           <div>
@@ -241,6 +271,19 @@ export default function AuthorForm({ siteId, author, mode }: AuthorFormProps) {
           </div>
         </div>
       </div>
+      
+      {/* SEO Box */}
+      {mode === 'edit' && author?.id && (
+        <SeoBox
+          content={seoData}
+          onUpdate={updateSeoData}
+          siteUrl={`https://example.com`}
+          siteName={siteName}
+          showAnalysis={false}
+          showPreview={true}
+          showAdvanced={true}
+        />
+      )}
       
       {/* Actions */}
       <div className="flex gap-4">

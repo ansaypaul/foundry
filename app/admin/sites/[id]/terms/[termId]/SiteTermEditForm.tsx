@@ -6,6 +6,7 @@ import { Term } from '@/lib/db/types';
 import Link from 'next/link';
 import { Input, Textarea, Label, FormCard, ErrorMessage, SuccessMessage, PrimaryButton, SecondaryButton } from '@/app/admin/components/FormComponents';
 import { SeoBox } from '@/app/admin/components/SeoBox';
+import RichTextEditor from '@/app/admin/components/RichTextEditor';
 
 interface Props {
   term: Term;
@@ -140,12 +141,14 @@ export default function SiteTermEditForm({ term, siteId, siteUrl, siteName }: Pr
 
           <div>
             <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              name="description"
-              rows={4}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+            <p className="text-xs text-gray-400 mb-2">
+              Description visible sur la page de la catégorie. Supporte le HTML enrichi.
+            </p>
+            <RichTextEditor
+              content={description}
+              onChange={setDescription}
+              placeholder="Décrivez cette catégorie..."
+              siteId={siteId}
             />
           </div>
         </div>

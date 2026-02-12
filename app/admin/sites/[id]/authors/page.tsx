@@ -96,9 +96,10 @@ export default async function AuthorsPage({ params }: PageProps) {
               
               {/* Bio (tronquée) */}
               {author.bio && (
-                <p className="text-sm text-gray-300 mb-4 line-clamp-2">
-                  {author.bio}
-                </p>
+                <div 
+                  className="text-sm text-gray-300 mb-4 line-clamp-2 prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: author.bio }}
+                />
               )}
               
               {/* Liens sociaux */}

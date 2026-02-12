@@ -9,14 +9,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Input, Textarea, Label, HelperText, Select } from './FormComponents';
 import { analyzeSeo, type SeoAnalysisResult } from '@/lib/core/seo';
-import type { Content, Term } from '@/lib/db/types';
+import type { Content, Term, Author } from '@/lib/db/types';
 
 // ===================================
 // TYPES
 // ===================================
 
 // Type pour les entités qui peuvent avoir des métadonnées SEO
-export type SeoEntity = Partial<Content> | Partial<Term>;
+export type SeoEntity = Partial<Content> | Partial<Term> | Partial<Author>;
 
 export interface SeoBoxProps {
   // Données du contenu (Content ou Term)

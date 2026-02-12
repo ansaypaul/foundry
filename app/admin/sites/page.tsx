@@ -79,10 +79,27 @@ export default async function SitesPage() {
                       }`}>
                         {site.status}
                       </span>
+                      {site.setup_status === 'draft' && (
+                        <span className="px-2 py-1 text-xs rounded-full bg-yellow-900/50 text-yellow-200 border border-yellow-500/50">
+                          Configuration requise
+                        </span>
+                      )}
                     </div>
-                    <p className="text-sm text-gray-400 mb-3">
-                      Thème: <span className="font-medium">{site.theme_key}</span>
-                    </p>
+                    <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
+                      <span>
+                        Thème: <span className="font-medium">{site.theme_key}</span>
+                      </span>
+                      {site.language && site.country && (
+                        <span>
+                          {site.language.toUpperCase()} / {site.country}
+                        </span>
+                      )}
+                      {site.site_type && (
+                        <span className="capitalize">
+                          {site.site_type.replace('_', ' ')}
+                        </span>
+                      )}
+                    </div>
                     
                     {/* Domains */}
                     {site.domains && site.domains.length > 0 && (

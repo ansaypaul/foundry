@@ -28,12 +28,89 @@ export default function PostsManager({ siteId, siteName, siteUrl, initialPosts, 
   const [posts, setPosts] = useState(initialPosts);
   const [filteredPosts, setFilteredPosts] = useState(initialPosts);
   
+  // Sélection multiple
+  const [selectedPosts, setSelectedPosts] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  
   // Filtres
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortBy, setSortBy] = useState<'date' | 'title'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  // Fonctions de sélection
+  const toggleSelectAll = () => {
+    if (selectedPosts.size === filteredPosts.length) {
+      setSelectedPosts(new Set());
+    } else {
+      setSelectedPosts(new Set(filteredPosts.map(p => p.id)));
+    }
+  };
+
+  const toggleSelectPost = (postId: string) => {
+    const newSelected = new Set(selectedPosts);
+    if (newSelected.has(postId)) {
+      newSelected.delete(postId);
+    } else {
+      newSelected.add(postId);
+    }
+    setSelectedPosts(newSelected);
+  };
+
+  // Actions en masse
+  const handleBulkAction = async () => {
+    if (!bulkAction || selectedPosts.size === 0) return;
+
+    if (bulkAction === 'delete') {
+      if (!confirm(`Êtes-vous sûr de vouloir supprimer ${selectedPosts.size} article(s) ? Cette action est irréversible.`)) {
+        return;
+      }
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const response = await fetch(`/api/admin/sites/${siteId}/posts/bulk`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: bulkAction,
+          postIds: Array.from(selectedPosts),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de l\'exécution de l\'action');
+      }
+
+      const result = await response.json();
+
+      // Mettre à jour la liste locale
+      if (bulkAction === 'delete') {
+        setPosts(posts.filter(p => !selectedPosts.has(p.id)));
+      } else if (bulkAction === 'publish' || bulkAction === 'draft') {
+        const newStatus = bulkAction === 'publish' ? 'published' : 'draft';
+        setPosts(posts.map(p => 
+          selectedPosts.has(p.id) 
+            ? { ...p, status: newStatus, published_at: newStatus === 'published' ? new Date().toISOString() : p.published_at }
+            : p
+        ));
+      }
+
+      // Réinitialiser la sélection
+      setSelectedPosts(new Set());
+      setBulkAction('');
+      
+      alert(`Action effectuée avec succès sur ${selectedPosts.size} article(s)`);
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Une erreur est survenue lors de l\'exécution de l\'action');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   // Appliquer les filtres
   useEffect(() => {
@@ -184,6 +261,45 @@ export default function PostsManager({ siteId, siteName, siteUrl, initialPosts, 
         </div>
       </div>
 
+      {/* Barre d'actions en masse */}
+      {selectedPosts.size > 0 && (
+        <div className="bg-blue-900/20 border border-blue-600 rounded-lg p-4">
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-blue-400 font-medium">
+              {selectedPosts.size} article{selectedPosts.size > 1 ? 's' : ''} sélectionné{selectedPosts.size > 1 ? 's' : ''}
+            </div>
+            
+            <div className="flex items-center gap-2 flex-1">
+              <Select
+                value={bulkAction}
+                onChange={(e) => setBulkAction(e.target.value)}
+                className="max-w-xs"
+              >
+                <option value="">Actions en masse...</option>
+                <option value="publish">Publier</option>
+                <option value="draft">Mettre en brouillon</option>
+                <option value="delete">Supprimer</option>
+              </Select>
+              
+              <button
+                onClick={handleBulkAction}
+                disabled={!bulkAction || isProcessing}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isProcessing ? 'Traitement...' : 'Appliquer'}
+              </button>
+            </div>
+
+            <button
+              onClick={() => setSelectedPosts(new Set())}
+              className="text-sm text-gray-400 hover:text-white"
+            >
+              Annuler la sélection
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Liste des articles */}
       <div className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
         {filteredPosts.length === 0 ? (
@@ -208,6 +324,14 @@ export default function PostsManager({ siteId, siteName, siteUrl, initialPosts, 
             <table className="w-full">
               <thead className="bg-gray-700">
                 <tr>
+                  <th className="px-6 py-3 text-left w-12">
+                    <input
+                      type="checkbox"
+                      checked={selectedPosts.size === filteredPosts.length && filteredPosts.length > 0}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-800 cursor-pointer"
+                    />
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Titre
                   </th>
@@ -228,6 +352,14 @@ export default function PostsManager({ siteId, siteName, siteUrl, initialPosts, 
               <tbody className="divide-y divide-gray-700">
                 {filteredPosts.map((post) => (
                   <tr key={post.id} className="hover:bg-gray-700/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedPosts.has(post.id)}
+                        onChange={() => toggleSelectPost(post.id)}
+                        className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-800 cursor-pointer"
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       <div>
                         <div className="text-sm font-medium text-white">{post.title}</div>

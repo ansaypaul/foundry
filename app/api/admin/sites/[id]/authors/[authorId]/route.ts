@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthorById, updateAuthor, deleteAuthor } from '@/lib/db/authors-queries';
+import { getSupabaseAdmin } from '@/lib/db/client';
 
 interface RouteParams {
   params: Promise<{ id: string; authorId: string }>;
@@ -51,6 +52,16 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       linkedin_url,
       instagram_username,
       github_username,
+      // Champs SEO
+      seo_title,
+      seo_description,
+      seo_canonical,
+      seo_robots_index,
+      seo_robots_follow,
+      seo_og_title,
+      seo_og_description,
+      seo_og_image,
+      seo_twitter_card,
     } = body;
     
     // Préparer les mises à jour
@@ -69,6 +80,37 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     
     // Mettre à jour
     const author = await updateAuthor(authorId, updates);
+    
+    // Mettre à jour les métadonnées SEO dans seo_meta
+    const hasSeoData = seo_title || seo_description || seo_canonical || 
+                       seo_og_title || seo_og_description || seo_og_image ||
+                       seo_twitter_card;
+    
+    if (hasSeoData) {
+      const supabase = getSupabaseAdmin();
+      
+      const seoUpdates: any = {
+        entity_type: 'author',
+        entity_id: authorId,
+      };
+      
+      if (seo_title !== undefined) seoUpdates.seo_title = seo_title?.trim() || null;
+      if (seo_description !== undefined) seoUpdates.seo_description = seo_description?.trim() || null;
+      if (seo_canonical !== undefined) seoUpdates.seo_canonical = seo_canonical?.trim() || null;
+      if (seo_robots_index !== undefined) seoUpdates.seo_robots_index = seo_robots_index;
+      if (seo_robots_follow !== undefined) seoUpdates.seo_robots_follow = seo_robots_follow;
+      if (seo_og_title !== undefined) seoUpdates.seo_og_title = seo_og_title?.trim() || null;
+      if (seo_og_description !== undefined) seoUpdates.seo_og_description = seo_og_description?.trim() || null;
+      if (seo_og_image !== undefined) seoUpdates.seo_og_image = seo_og_image?.trim() || null;
+      if (seo_twitter_card !== undefined) seoUpdates.seo_twitter_card = seo_twitter_card;
+      
+      // Upsert dans seo_meta
+      await supabase
+        .from('seo_meta')
+        .upsert(seoUpdates, {
+          onConflict: 'entity_type,entity_id',
+        });
+    }
     
     return NextResponse.json({ author });
   } catch (error: any) {
