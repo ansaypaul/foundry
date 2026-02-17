@@ -9,6 +9,9 @@ interface ContentType {
   key: string;
   label: string;
   description: string | null;
+  // From new registry system
+  isEnabled?: boolean;
+  hasOverrides?: boolean;
 }
 
 interface Category {
@@ -39,7 +42,7 @@ export default function NewAIArticlePage() {
     async function loadData() {
       try {
         const [typesRes, categoriesRes] = await Promise.all([
-          fetch(`/api/admin/sites/${siteId}/content-types`),
+          fetch(`/api/admin/sites/${siteId}/content-type-settings`),
           fetch(`/api/admin/sites/${siteId}/terms/categories`),
         ]);
 
@@ -52,12 +55,25 @@ export default function NewAIArticlePage() {
           categoriesRes.json(),
         ]);
 
-        setContentTypes(typesData.contentTypes || []);
+        // Get content types from new registry
+        // Note: Now ALL active types are available by default
+        const enabledTypes = (typesData.contentTypes || [])
+          .filter((item: any) => item.isEnabled !== false) // Only filter if explicitly disabled
+          .map((item: any) => ({
+            id: item.contentType.id,
+            key: item.contentType.key,
+            label: item.contentType.label,
+            description: item.contentType.description,
+            isEnabled: item.isEnabled,
+            hasOverrides: item.hasOverrides,
+          }));
+
+        setContentTypes(enabledTypes);
         setCategories(categoriesData.categories || []);
 
         // Set defaults
-        if (typesData.contentTypes?.length > 0) {
-          setContentTypeKey(typesData.contentTypes[0].key);
+        if (enabledTypes.length > 0) {
+          setContentTypeKey(enabledTypes[0].key);
         }
         if (categoriesData.categories?.length > 0) {
           setCategorySlug(categoriesData.categories[0].slug);
@@ -209,9 +225,15 @@ export default function NewAIArticlePage() {
                 <option key={ct.key} value={ct.key}>
                   {ct.label}
                   {ct.description ? ` - ${ct.description}` : ''}
+                  {ct.hasOverrides ? ' 🔧' : ''}
                 </option>
               ))}
             </select>
+            <p className="text-xs text-gray-500 mt-1">
+              {contentTypes.find(ct => ct.key === contentTypeKey)?.hasOverrides && (
+                <span className="text-purple-400">🔧 Ce type a des overrides personnalisés</span>
+              )}
+            </p>
           </div>
 
           {/* Category */}
@@ -308,11 +330,16 @@ export default function NewAIArticlePage() {
       {/* No data warnings */}
       {!loading && contentTypes.length === 0 && (
         <div className="mt-6 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg text-yellow-200">
-          <p className="font-semibold mb-1">⚠️ Aucun type de contenu</p>
-          <p className="text-sm">
-            Vous devez d'abord créer des types de contenu dans la configuration
-            du site.
+          <p className="font-semibold mb-1">⚠️ Aucun type de contenu disponible</p>
+          <p className="text-sm mb-3">
+            Aucun type de contenu n'est actuellement activé au niveau global.
           </p>
+          <Link
+            href={`/admin/editorial-content-types`}
+            className="inline-block px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            Gérer les types globaux →
+          </Link>
         </div>
       )}
 

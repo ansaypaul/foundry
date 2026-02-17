@@ -55,10 +55,6 @@ export default async function BlueprintVersionPage({ params }: PageProps) {
             <div className="text-gray-400">Pages</div>
             <div className="text-white font-medium text-2xl">{blueprint.pages.length}</div>
           </div>
-          <div>
-            <div className="text-gray-400">Types de contenu</div>
-            <div className="text-white font-medium text-2xl">{blueprint.contentTypes.length}</div>
-          </div>
         </div>
       </div>
 
@@ -108,23 +104,6 @@ export default async function BlueprintVersionPage({ params }: PageProps) {
               <div key={i} className="p-2 bg-gray-700 rounded text-sm flex justify-between">
                 <span className="text-white">{p.title}</span>
                 <span className="text-gray-400">{p.type}</span>
-              </div>
-            ))}
-          </div>
-        </details>
-
-        <details className="bg-gray-800 border border-gray-700 rounded-lg p-4">
-          <summary className="cursor-pointer text-white font-medium mb-3">
-            Types de contenu ({blueprint.contentTypes.length})
-          </summary>
-          <div className="space-y-2">
-            {blueprint.contentTypes.map((ct, i) => (
-              <div key={i} className="p-3 bg-gray-700 rounded">
-                <div className="font-medium text-white">{ct.label}</div>
-                <div className="text-xs text-gray-400 mb-2">{ct.key}</div>
-                <div className="text-xs text-gray-300">
-                  {ct.rulesJson.length.min_words}–{ct.rulesJson.length.target_words} mots
-                </div>
               </div>
             ))}
           </div>

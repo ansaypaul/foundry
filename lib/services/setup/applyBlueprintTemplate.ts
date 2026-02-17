@@ -2,6 +2,89 @@ import { getSupabaseAdmin } from '@/lib/db/client';
 import { BlueprintTemplateV1 } from '@/lib/services/blueprint/blueprintTemplateSchema';
 
 // ====================================
+// Content Type Initialization
+// ====================================
+
+/**
+ * Get default content type keys based on site type
+ */
+function getDefaultContentTypeKeys(siteType: string): string[] {
+  switch (siteType) {
+    case 'news_media':
+      return ['news', 'explainer', 'interview', 'opinion'];
+    case 'gaming_popculture':
+      return ['news', 'review', 'guide', 'top10'];
+    case 'affiliate_guides':
+      return ['guide', 'review', 'comparison', 'top10', 'howto'];
+    case 'lifestyle':
+      return ['guide', 'top10', 'howto', 'opinion'];
+    case 'niche_passion':
+    default:
+      return ['news', 'guide', 'review', 'top10', 'howto'];
+  }
+}
+
+/**
+ * Initialize site_content_type_settings for a new site
+ * Activates default content types based on site type
+ */
+async function initializeSiteContentTypes(
+  siteId: string,
+  siteType: string
+): Promise<{ initialized: number; skipped: number }> {
+  const supabase = getSupabaseAdmin();
+  
+  // Get default content type keys for this site type
+  const defaultKeys = getDefaultContentTypeKeys(siteType);
+  
+  // Get editorial content types from registry
+  const { data: contentTypes, error } = await supabase
+    .from('editorial_content_types')
+    .select('id, key')
+    .in('key', defaultKeys)
+    .eq('is_active', true);
+  
+  if (error || !contentTypes) {
+    console.warn('Failed to load editorial content types:', error);
+    return { initialized: 0, skipped: 0 };
+  }
+  
+  let initialized = 0;
+  let skipped = 0;
+  
+  // Create site_content_type_settings for each default type
+  for (const contentType of contentTypes) {
+    // Check if already exists
+    const { data: existing } = await supabase
+      .from('site_content_type_settings')
+      .select('id')
+      .eq('site_id', siteId)
+      .eq('content_type_id', contentType.id)
+      .maybeSingle();
+    
+    if (existing) {
+      skipped++;
+      continue;
+    }
+    
+    // Create setting (enabled by default)
+    const { error: insertError } = await supabase
+      .from('site_content_type_settings')
+      .insert({
+        site_id: siteId,
+        content_type_id: contentType.id,
+        is_enabled: true,
+      });
+    
+    if (!insertError) {
+      initialized++;
+    }
+  }
+  
+  return { initialized, skipped };
+}
+
+// ====================================
 // Apply Blueprint Template to Database
 // ====================================
 
@@ -10,14 +93,13 @@ export interface ApplyBlueprintResult {
     categories: number;
     authors: number;
     pages: number;
-    contentTypes: number;
     seoMeta: number;
+    contentTypeSettings: number; // NEW: site_content_type_settings initialized
   };
   skipped: {
     categories: number;
     authors: number;
     pages: number;
-    contentTypes: number;
   };
 }
 
@@ -68,8 +150,8 @@ export async function applyBlueprintTemplate(
   const template = blueprintRecord.blueprint_json as BlueprintTemplateV1;
 
   const result: ApplyBlueprintResult = {
-    created: { categories: 0, authors: 0, pages: 0, contentTypes: 0, seoMeta: 0 },
-    skipped: { categories: 0, authors: 0, pages: 0, contentTypes: 0 },
+    created: { categories: 0, authors: 0, pages: 0, seoMeta: 0, contentTypeSettings: 0 },
+    skipped: { categories: 0, authors: 0, pages: 0 },
   };
 
   // 1. Create Categories (terms)
@@ -216,34 +298,9 @@ export async function applyBlueprintTemplate(
     }
   }
 
-  // 4. Create Content Types
-  for (const contentType of template.contentTypes) {
-    // Check if exists
-    const { data: existing } = await supabase
-      .from('content_types')
-      .select('id')
-      .eq('site_id', siteId)
-      .eq('key', contentType.key)
-      .maybeSingle();
-
-    if (existing) {
-      result.skipped.contentTypes++;
-      continue;
-    }
-
-    // Create content type
-    const { error } = await supabase.from('content_types').insert({
-      site_id: siteId,
-      key: contentType.key,
-      label: contentType.label,
-      rules_json: contentType.rules,
-      status: 'active',
-    });
-
-    if (!error) {
-      result.created.contentTypes++;
-    }
-  }
+  // 4. Initialize Content Type Settings (from editorial_content_types registry)
+  const contentTypesInitResult = await initializeSiteContentTypes(siteId, template.site.siteType);
+  result.created.contentTypeSettings = contentTypesInitResult.initialized;
 
   // 5. Create/update site-level SEO defaults
   const { data: siteSeoMeta } = await supabase

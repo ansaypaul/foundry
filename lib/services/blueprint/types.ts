@@ -24,12 +24,7 @@ export const BlueprintPageSchema = z.object({
   status: z.string(),
 });
 
-export const BlueprintContentTypeSchema = z.object({
-  key: z.string(),
-  label: z.string(),
-  status: z.string(),
-  rulesJson: z.any(),
-});
+// BlueprintContentTypeSchema removed - content types now managed via editorial_content_types table
 
 export const BlueprintSeoDefaultsSchema = z.object({
   contentTitleTemplate: z.string(),
@@ -87,7 +82,7 @@ export const BlueprintV1Schema = z.object({
   
   pages: z.array(BlueprintPageSchema),
   
-  contentTypes: z.array(BlueprintContentTypeSchema),
+  // contentTypes removed - now managed via editorial_content_types table
   
   seoDefaults: BlueprintSeoDefaultsSchema,
   
@@ -100,4 +95,4 @@ export type BlueprintSeoBootstrap = z.infer<typeof BlueprintSeoBootstrapSchema>;
 export type BlueprintAuthor = z.infer<typeof BlueprintAuthorSchema>;
 export type BlueprintCategory = z.infer<typeof BlueprintCategorySchema>;
 export type BlueprintPage = z.infer<typeof BlueprintPageSchema>;
-export type BlueprintContentType = z.infer<typeof BlueprintContentTypeSchema>;
+// BlueprintContentType removed - use editorial_content_types table instead

@@ -1,5 +1,34 @@
 # Migrations à appliquer - FOUNDRY
 
+## ⚠️ NOUVELLE MIGRATION PRIORITAIRE - Content Types Refactor
+
+**IMPORTANT:** Une nouvelle migration pour le refactor des Content Types est disponible.  
+Elle doit être appliquée AVANT de créer de nouveaux sites.
+
+### 🆕 Migration Content Types (PRIORITÉ 1)
+```sql
+-- Fichier: lib/db/migration-editorial-content-types.sql
+-- Crée le nouveau système de Content Types Registry
+
+-- Tables créées:
+-- - editorial_content_types (registry global)
+-- - site_content_type_settings (pivot + overrides)
+-- - content.content_type_id (nouvelle colonne)
+
+-- Voir: CONTENT_TYPES_REFACTOR_SUMMARY.md pour détails complets
+```
+
+### 🌱 Seed Content Types (PRIORITÉ 1)
+```sql
+-- Fichier: lib/db/seed-editorial-content-types.sql
+-- Seed 10 types de contenu standards
+
+-- Types créés: top10, news, guide, howto, review, 
+--              comparison, interview, explainer, opinion, evergreen
+```
+
+---
+
 ## Ordre d'application
 
 Exécute ces migrations dans Supabase SQL Editor (ou ton outil DB) :
@@ -130,11 +159,87 @@ WHERE conname = 'seo_meta_entity_type_check';
 
 ---
 
+---
+
+## 🆕 4. Migration Research Engine (NOUVEAU - PRIORITAIRE)
+
+### A. Créer les tables research
+```sql
+-- Fichier: lib/db/migration-research-engine.sql
+\i lib/db/migration-research-engine.sql
+```
+
+### B. Seed les configurations research
+```sql
+-- Fichier: lib/db/seed-research-config.sql
+\i lib/db/seed-research-config.sql
+```
+
+### C. Ajouter PERPLEXITY_API_KEY ⚠️ IMPORTANT
+```bash
+# Dans votre fichier .env (root du projet)
+PERPLEXITY_API_KEY=pplx-xxxxxxxxxxxx
+
+# Obtenir une clé: https://www.perplexity.ai/settings/api
+```
+
+**IMPORTANT:** Sans cette clé, la recherche sera skipée pour les types qui la requièrent.
+
+---
+
+## ✅ 5. Migration Content Types Registry (APPLIQUÉE)
+
+### A. Créer les tables ✅
+```sql
+-- Fichier: lib/db/migration-editorial-content-types.sql
+\i lib/db/migration-editorial-content-types.sql
+```
+
+### B. Seed les types standards ✅
+```sql
+-- Fichier: lib/db/seed-editorial-content-types.sql
+\i lib/db/seed-editorial-content-types.sql
+```
+
+### C. Initialiser les types pour les sites existants ✅ IMPORTANT
+```sql
+-- Fichier: lib/db/migration-init-existing-sites-content-types.sql
+-- Active tous les types de contenu pour les sites existants
+\i lib/db/migration-init-existing-sites-content-types.sql
+```
+
+### D. Migration rétrocompatibilité (optionnel)
+```sql
+-- Fichier: lib/db/migration-content-types-retrocompat.sql
+-- Migre les anciens articles (content_type_key → content_type_id)
+\i lib/db/migration-content-types-retrocompat.sql
+```
+
+### C. Vérification
+```sql
+-- Vérifier que 10 types sont créés
+SELECT key, label, is_system, is_active 
+FROM editorial_content_types 
+ORDER BY key;
+
+-- Devrait afficher: comparison, evergreen, explainer, guide, howto, 
+--                   interview, news, opinion, review, top10
+```
+
+**Important:** Ce refactor change fondamentalement la gestion des content types.  
+Les content types ne sont plus générés par le blueprint IA, mais gérés via un registry central.
+
+**Voir documentation complète:** `CONTENT_TYPES_REFACTOR_SUMMARY.md`
+
+---
+
 ## Une fois appliqué
 
 Redémarre le serveur Next.js et teste :
-1. `/admin/sites/[id]/enhance` - Enrichissement IA
-2. `/admin/sites/[id]/articles/new-ai` - Génération d'articles
-3. `/admin/sites/[id]/ai-jobs` - Liste des jobs
+1. `/admin/sites/new` - Créer un nouveau site
+2. `/admin/sites/[id]/setup` - Générer blueprint (sans contentTypes ✅)
+3. Vérifier `site_content_type_settings` est initialisé
+4. `/admin/sites/[id]/articles/new-ai` - Génération d'articles (à adapter)
+5. `/admin/sites/[id]/ai-jobs` - Liste des jobs
 
-Tous les jobs IA devraient fonctionner correctement.
+**Note:** La génération d'articles nécessite adaptation du code (voir TODO #8 et #9 dans CONTENT_TYPES_REFACTOR_SUMMARY.md)

@@ -1,7 +1,8 @@
 import * as cheerio from 'cheerio';
 import { ContentTypeRules } from '../setup/contentTypesGenerator';
+import { ResolvedContentType } from '../contentTypes/contentTypeRegistry';
 
-// Flexible type that supports both old and new blueprint formats
+// Flexible type that supports both old and new formats
 export type FlexibleContentTypeRules = ContentTypeRules | {
   minWords?: number;
   h2Min?: number;
@@ -26,6 +27,11 @@ export interface ValidationResult {
     h2Count: number;
     listCount: number;
     paragraphsPerH2: number[];
+  };
+  metadata?: {
+    contentTypeKey?: string;
+    contentTypeLabel?: string;
+    validatorSource?: 'registry' | 'legacy';
   };
 }
 
@@ -112,7 +118,151 @@ function parseHtmlStructure(html: string) {
 }
 
 /**
- * Validate article content against content type rules
+ * Validate article content against NEW content type (from registry)
+ */
+export function validateArticleContentFromRegistry(args: {
+  html: string;
+  contentType: ResolvedContentType;
+}): ValidationResult {
+  const { html, contentType } = args;
+  const errors: ValidationError[] = [];
+  
+  const profile = contentType.validatorProfile || {};
+  
+  // Parse HTML once (without adding wrapper tags)
+  const $ = cheerio.load(html, null, false); // false = don't add html/body wrapper
+
+  // 1. Count words
+  const wordCount = countWords(html);
+
+  // 2. Parse structure
+  const structure = parseHtmlStructure(html);
+
+  // 3. Word count validation
+  const minWords = profile.min_words || 800;
+  const maxWords = profile.max_words || null;
+  
+  // Min words (with 15% tolerance)
+  const minWordsWithTolerance = Math.floor(minWords * 0.85);
+  if (wordCount < minWordsWithTolerance) {
+    errors.push({
+      code: 'WORD_COUNT_TOO_LOW',
+      message: `L'article doit contenir au moins ${minWords} mots (actuellement ${wordCount}, minimum accepté: ${minWordsWithTolerance})`,
+    });
+  }
+  
+  // Max words (if specified)
+  if (maxWords && wordCount > maxWords) {
+    errors.push({
+      code: 'WORD_COUNT_TOO_HIGH',
+      message: `L'article ne doit pas dépasser ${maxWords} mots (actuellement ${wordCount})`,
+    });
+  }
+
+  // 4. H2 count validation
+  if (profile.h2_count_exact) {
+    // Exact count required (e.g., Top 10)
+    if (structure.h2Count !== profile.h2_count_exact) {
+      errors.push({
+        code: 'H2_COUNT_INCORRECT',
+        message: `L'article doit contenir EXACTEMENT ${profile.h2_count_exact} sections H2 (actuellement ${structure.h2Count})`,
+      });
+    }
+  } else {
+    // Min/Max range
+    if (profile.h2_count_min && structure.h2Count < profile.h2_count_min) {
+      errors.push({
+        code: 'H2_COUNT_TOO_LOW',
+        message: `L'article doit contenir au moins ${profile.h2_count_min} sections H2 (actuellement ${structure.h2Count})`,
+      });
+    }
+    if (profile.h2_count_max && structure.h2Count > profile.h2_count_max) {
+      errors.push({
+        code: 'H2_COUNT_TOO_HIGH',
+        message: `L'article ne doit pas dépasser ${profile.h2_count_max} sections H2 (actuellement ${structure.h2Count})`,
+      });
+    }
+  }
+
+  // 5. Paragraphs per H2 validation
+  const minParagraphsPerH2 = profile.min_paragraphs_per_h2 || 0;
+  if (minParagraphsPerH2 > 0) {
+    for (let i = 0; i < structure.paragraphsPerH2.length; i++) {
+      const pCount = structure.paragraphsPerH2[i];
+      if (pCount < minParagraphsPerH2) {
+        errors.push({
+          code: 'H2_SECTION_TOO_SHORT',
+          message: `Section H2 ${i + 1} contient seulement ${pCount} paragraphe(s) (minimum: ${minParagraphsPerH2})`,
+        });
+      }
+    }
+  }
+
+  // 6. List count validation
+  const maxLists = profile.max_lists ?? 2;
+  if (structure.listCount > maxLists) {
+    errors.push({
+      code: 'TOO_MANY_LISTS',
+      message: `Maximum ${maxLists} liste(s) autorisée(s) (actuellement ${structure.listCount})`,
+    });
+  }
+
+  // 7. Forbidden substrings (new feature)
+  if (profile.forbidden_substrings && Array.isArray(profile.forbidden_substrings)) {
+    for (const forbidden of profile.forbidden_substrings) {
+      if (html.includes(forbidden)) {
+        errors.push({
+          code: 'FORBIDDEN_PATTERN',
+          message: `Le texte contient un pattern interdit: "${forbidden}"`,
+        });
+      }
+    }
+  }
+
+  // 8. Allowed HTML tags validation
+  if (contentType.allowedHtmlTags && contentType.allowedHtmlTags.length > 0) {
+    const allowedTags = contentType.allowedHtmlTags.map(t => t.toLowerCase());
+    
+    // Extract tags directly from HTML string (to avoid Cheerio auto-wrapping issues)
+    const tagRegex = /<\/?([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>/g;
+    const foundTags = new Set<string>();
+    let match;
+    
+    while ((match = tagRegex.exec(html)) !== null) {
+      foundTags.add(match[1].toLowerCase());
+    }
+    
+    const uniqueTags = Array.from(foundTags);
+    const disallowedTags = uniqueTags.filter(tag => !allowedTags.includes(tag));
+    
+    if (disallowedTags.length > 0) {
+      const allowedList = allowedTags.join(', ');
+      errors.push({
+        code: 'DISALLOWED_HTML_TAGS',
+        message: `Tags HTML non autorisés détectés: ${disallowedTags.join(', ')}. Tags autorisés: ${allowedList}. N'utilisez pas de structure document HTML (<html>, <head>, <body>).`,
+      });
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    stats: {
+      wordCount,
+      h2Count: structure.h2Count,
+      listCount: structure.listCount,
+      paragraphsPerH2: structure.paragraphsPerH2,
+    },
+    metadata: {
+      contentTypeKey: contentType.key,
+      contentTypeLabel: contentType.label,
+      validatorSource: 'registry',
+    },
+  };
+}
+
+/**
+ * Validate article content against LEGACY content type rules (backward compatibility)
  */
 export function validateArticleContent(args: {
   html: string;
@@ -205,6 +355,9 @@ export function validateArticleContent(args: {
       h2Count: structure.h2Count,
       listCount: structure.listCount,
       paragraphsPerH2: structure.paragraphsPerH2,
+    },
+    metadata: {
+      validatorSource: 'legacy',
     },
   };
 }

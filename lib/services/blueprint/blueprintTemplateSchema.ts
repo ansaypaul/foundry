@@ -25,18 +25,7 @@ export const BlueprintPageSchema = z.object({
   status: z.literal('draft'),
 });
 
-export const BlueprintContentTypeSchema = z.object({
-  key: z.string().min(1).max(50).regex(/^[a-z0-9_]+$/),
-  label: z.string().min(1).max(100),
-  rules: z.object({
-    minWords: z.number().int().min(100).max(5000),
-    h2Min: z.number().int().min(1).max(10),
-    maxSingleItemLists: z.boolean(),
-    allowHtmlTags: z.array(z.enum(['h2', 'p', 'ul', 'li', 'b', 'i', 'strong', 'em', 'a'])),
-    noEmojis: z.boolean(),
-    noLongDash: z.boolean(),
-  }),
-});
+// BlueprintContentTypeSchema removed - content types now managed via editorial_content_types table
 
 export const BlueprintSeoDefaultsSchema = z.object({
   contentTitleTemplate: z.string(),
@@ -65,7 +54,7 @@ export const BlueprintTemplateV1Schema = z.object({
   }),
   authors: z.array(BlueprintAuthorSchema).min(2).max(10),
   pages: z.array(BlueprintPageSchema).min(5).max(5), // Always 5 mandatory pages
-  contentTypes: z.array(BlueprintContentTypeSchema).min(2).max(10),
+  // contentTypes removed - now managed via editorial_content_types table
   seoDefaults: BlueprintSeoDefaultsSchema,
 });
 
@@ -73,7 +62,7 @@ export type BlueprintTemplateV1 = z.infer<typeof BlueprintTemplateV1Schema>;
 export type BlueprintCategory = z.infer<typeof BlueprintCategorySchema>;
 export type BlueprintAuthor = z.infer<typeof BlueprintAuthorSchema>;
 export type BlueprintPage = z.infer<typeof BlueprintPageSchema>;
-export type BlueprintContentType = z.infer<typeof BlueprintContentTypeSchema>;
+// BlueprintContentType removed - use editorial_content_types table instead
 export type BlueprintSeoDefaults = z.infer<typeof BlueprintSeoDefaultsSchema>;
 
 /**
@@ -104,35 +93,34 @@ export function validateBlueprintTemplate(data: unknown): {
 /**
  * Get counts constraints based on ambition level
  */
+/**
+ * Get counts constraints based on ambition level
+ * Note: contentTypes constraints removed - content types now managed via editorial_content_types table
+ */
 export function getBlueprintConstraints(ambitionLevel: string): {
   categories: { min: number; max: number };
   authors: { min: number; max: number };
-  contentTypes: { min: number; max: number };
 } {
   switch (ambitionLevel) {
     case 'starter':
       return {
         categories: { min: 4, max: 6 },
         authors: { min: 2, max: 3 },
-        contentTypes: { min: 3, max: 4 },
       };
     case 'growth':
       return {
         categories: { min: 6, max: 10 },
         authors: { min: 3, max: 5 },
-        contentTypes: { min: 4, max: 6 },
       };
     case 'factory':
       return {
         categories: { min: 10, max: 16 },
         authors: { min: 5, max: 8 },
-        contentTypes: { min: 6, max: 8 },
       };
     default: // 'auto'
       return {
         categories: { min: 5, max: 8 },
         authors: { min: 3, max: 4 },
-        contentTypes: { min: 3, max: 5 },
       };
   }
 }

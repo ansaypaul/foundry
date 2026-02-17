@@ -192,18 +192,6 @@ export default function AiBlueprintGenerator({ siteId }: Props) {
               </div>
 
               {/* Content Types */}
-              <div className="mb-4">
-                <div className="text-sm font-medium text-gray-400 mb-2">
-                  Types de contenu ({template.contentTypes.length})
-                </div>
-                <div className="space-y-1">
-                  {template.contentTypes.map((ct, idx) => (
-                    <div key={idx} className="text-sm text-gray-300">
-                      {ct.label} ({ct.rules.minWords} mots min)
-                    </div>
-                  ))}
-                </div>
-              </div>
 
               {/* Pages */}
               <div>

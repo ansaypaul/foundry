@@ -79,6 +79,12 @@ export default function AdminLayoutClient({
                   Contenu
                 </Link>
                 <Link 
+                  href="/admin/editorial-content-types" 
+                  className="text-gray-300 hover:text-white transition-colors"
+                >
+                  Types de contenu
+                </Link>
+                <Link 
                   href="/admin/users" 
                   className="text-gray-300 hover:text-white transition-colors"
                 >

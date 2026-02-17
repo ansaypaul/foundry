@@ -244,20 +244,6 @@ CRITICAL OUTPUT REQUIREMENTS:
     { "key": "privacy", "title": "Politique de confidentialité", "slug": "politique-de-confidentialite", "status": "draft" },
     { "key": "terms", "title": "Conditions générales", "slug": "conditions-generales-utilisation", "status": "draft" }
   ],
-  "contentTypes": [
-    {
-      "key": "article_type_key",
-      "label": "Article Type Label",
-      "rules": {
-        "minWords": 800,
-        "h2Min": 3,
-        "maxSingleItemLists": true,
-        "allowHtmlTags": ["h2", "p", "ul", "li", "b", "i", "strong", "em"],
-        "noEmojis": true,
-        "noLongDash": true
-      }
-    }
-  ],
   "seoDefaults": {
     "contentTitleTemplate": "{{title}} | ${site.name}",
     "termTitleTemplate": "{{termName}} | ${site.name}",
@@ -270,8 +256,8 @@ CRITICAL OUTPUT REQUIREMENTS:
 2. STRICT CONSTRAINTS:
    - Categories: ${constraints.categories.min}-${constraints.categories.max} items
    - Authors: ${constraints.authors.min}-${constraints.authors.max} items
-   - Content types: ${constraints.contentTypes.min}-${constraints.contentTypes.max} items
    - Pages: EXACTLY 5 (the ones shown above)
+   - Note: Content types are now managed separately via the editorial content types registry
 
 3. CONTENT RULES:
    - NO emojis anywhere
@@ -324,18 +310,20 @@ Requirements:
    - displayName = real person name like "Marie Dubois" or "Pierre Laurent"
    - roleKey = technical role like "editorial_lead" or "senior_writer"
    - Each author needs a unique, realistic name matching ${site.country}
-3. Create content types with appropriate word counts and rules
-4. Ensure all slugs are clean (lowercase, kebab-case, ASCII)
-5. NO generic categories
-6. ALL content in ${site.language === 'fr' ? 'French' : 'English'}
+3. Ensure all slugs are clean (lowercase, kebab-case, ASCII)
+4. NO generic categories
+5. ALL content in ${site.language === 'fr' ? 'French' : 'English'}
+
+Note: Content types are managed separately and should NOT be included in this blueprint.
 
 CRITICAL:
 - NO emojis
 - NO long dash (—)
 - Valid JSON only
-- Follow the exact schema provided
+- Follow the exact schema provided (NO contentTypes field)
 - Author displayName MUST be realistic person names (first + last name)
 - DO NOT use job titles or role descriptions as author names
+- DO NOT include contentTypes in the output (managed separately)
 
 Generate the blueprint now:`;
 }

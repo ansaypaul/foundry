@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/db/client';
 import { getSiteById } from '@/lib/db/queries';
-import { generateArticleFromIdea } from '@/lib/services/ai/generateArticleFromIdea';
+import { generateArticleFromIdeaV2 } from '@/lib/services/ai/generateArticleFromIdea.v2';
+import { getContentTypeForSite } from '@/lib/services/contentTypes/contentTypeRegistry';
 import { isOpenAIConfigured } from '@/lib/services/ai/openaiClient';
 import { generateSlug } from '@/lib/utils/slug';
 
@@ -93,29 +94,21 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Site introuvable' }, { status: 404 });
     }
 
-    // Get content type
-    const { data: contentType, error: contentTypeError } = await supabase
-      .from('content_types')
-      .select('*')
-      .eq('site_id', siteId)
-      .eq('key', contentTypeKey)
-      .eq('status', 'active')
-      .single();
+    // Get content type from NEW registry system
+    const contentType = await getContentTypeForSite(siteId, contentTypeKey);
 
-    if (contentTypeError || !contentType) {
+    if (!contentType) {
       return NextResponse.json(
-        { error: 'Type de contenu introuvable' },
+        { error: 'Type de contenu introuvable ou non activé pour ce site' },
         { status: 404 }
       );
     }
 
-    // 🔍 DEBUG: Log blueprint rules
-    console.log('🔍 [BLUEPRINT DEBUG] Content Type loaded:', {
+    console.log('✅ [GENERATE V2] Content Type loaded:', {
       key: contentType.key,
       label: contentType.label,
-      rules_json_type: typeof contentType.rules_json,
-      rules_json_keys: contentType.rules_json ? Object.keys(contentType.rules_json) : 'NULL',
-      rules_json_full: JSON.stringify(contentType.rules_json, null, 2),
+      source: contentType.source,
+      hasOverrides: contentType.overrides.length > 0,
     });
 
     // Get category
@@ -135,10 +128,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Select author
-    const preferredRoleKeys =
-      contentType.rules_json?.defaults?.preferred_author_role_keys || [];
-    const author = await selectAuthor({ siteId, preferredRoleKeys });
+    // Select author (no preferred roles in new system, just pick any)
+    const author = await selectAuthor({ siteId, preferredRoleKeys: [] });
 
     if (!author) {
       return NextResponse.json(
@@ -209,8 +200,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     try {
-      // Generate article
-      const result = await generateArticleFromIdea({
+      // Generate article using NEW V2 system
+      const result = await generateArticleFromIdeaV2({
+        siteId,
+        contentTypeId: contentType.id,
         site: {
           name: site.name,
           language: site.language,
@@ -220,11 +213,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         idea: {
           title,
           angle,
-        },
-        contentType: {
-          key: contentType.key,
-          label: contentType.label,
-          rulesJson: contentType.rules_json,
         },
         category: {
           name: category.name,
@@ -265,7 +253,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           slug,
           title: result.title,
           content_html: result.contentHtml,
-          content_type_key: contentTypeKey,
+          content_type_key: contentTypeKey, // Legacy field (keep for backward compat)
+          content_type_id: contentType.id, // NEW field (registry system)
+          research_pack_id: result.metadata.researchPackId || null, // NEW: Link to research
           new_author_id: author.id,
           status: 'draft',
           ai_job_id: aiJob.id,
@@ -285,7 +275,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         term_id: category.id,
       });
 
-      // Update AI job to done
+      // Update AI job to done (with detailed attempts for debugging)
       await supabase
         .from('ai_job')
         .update({
@@ -298,8 +288,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
               articleTitle: article.title,
               stats: result.stats,
               validationErrors: [],
+              metadata: result.metadata, // Include V2 metadata
             },
+            // Full attempts with HTML for debugging
             attempts: result.attempts,
+            // Human-readable summary
+            attemptsCount: result.attempts.length,
+            finalAttemptValid: true,
           },
           finished_at: new Date().toISOString(),
         })
@@ -335,13 +330,44 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         errorCode = 'DB_INSERT_ERROR';
       }
 
-      // Update AI job to error
+      // Try to get attempts from error if available
+      let attemptsData = null;
+      try {
+        // If generateArticleFromIdeaV2 threw error, it should have attempts attached
+        const errorObj = generationError as any;
+        if (errorObj.attempts) {
+          attemptsData = errorObj.attempts;
+          console.log(`[API] Found ${attemptsData.length} attempts in error for debugging`);
+        }
+      } catch (e) {
+        console.error('[API] Could not extract attempts from error:', e);
+      }
+
+      // Update AI job to error WITH attempts for debugging
+      const outputJson = attemptsData ? {
+        error: errorMessage,
+        errorCode,
+        attempts: attemptsData,
+        attemptsCount: attemptsData.length,
+        failedAfterAllRetries: true,
+      } : {
+        error: errorMessage,
+        errorCode,
+      };
+
+      console.log('[API] Saving error to ai_job with output_json:', {
+        hasAttempts: !!attemptsData,
+        attemptsCount: attemptsData?.length || 0,
+      });
+
       await supabase
         .from('ai_job')
         .update({
           status: 'error',
           error_code: errorCode,
           error_message: errorMessage,
+          retries: attemptsData?.length ? attemptsData.length - 1 : 0,
+          output_json: outputJson,
           finished_at: new Date().toISOString(),
         })
         .eq('id', aiJob.id);

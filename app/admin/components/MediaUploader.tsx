@@ -9,6 +9,7 @@ interface Media {
   filename: string;
   alt_text: string | null;
   title: string | null;
+  caption: string | null;
   description: string | null;
   mime_type: string | null;
   file_size: number | null;
@@ -50,6 +51,7 @@ export default function MediaUploader({
   // Métadonnées éditables
   const [editTitle, setEditTitle] = useState('');
   const [editAlt, setEditAlt] = useState('');
+  const [editCaption, setEditCaption] = useState('');
   const [editDescription, setEditDescription] = useState('');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -103,6 +105,7 @@ export default function MediaUploader({
           setSelectedMedia(current);
           setEditTitle(current.title || '');
           setEditAlt(current.alt_text || '');
+          setEditCaption(current.caption || '');
           setEditDescription(current.description || '');
         }
       }
@@ -169,6 +172,7 @@ export default function MediaUploader({
       setSelectedMedia(media);
       setEditTitle(media.title || '');
       setEditAlt(media.alt_text || '');
+      setEditCaption(media.caption || '');
       setEditDescription(media.description || '');
       
       // Basculer sur la bibliothèque
@@ -184,6 +188,7 @@ export default function MediaUploader({
     setSelectedMedia(media);
     setEditTitle(media.title || '');
     setEditAlt(media.alt_text || '');
+    setEditCaption(media.caption || '');
     setEditDescription(media.description || '');
   };
 
@@ -197,6 +202,7 @@ export default function MediaUploader({
         body: JSON.stringify({
           title: editTitle || null,
           alt_text: editAlt || null,
+          caption: editCaption || null,
           description: editDescription || null,
         }),
       });
@@ -207,13 +213,13 @@ export default function MediaUploader({
       setMediaList(prev =>
         prev.map(m =>
           m.id === selectedMedia.id
-            ? { ...m, title: editTitle, alt_text: editAlt, description: editDescription }
+            ? { ...m, title: editTitle, alt_text: editAlt, caption: editCaption, description: editDescription }
             : m
         )
       );
       
       setSelectedMedia(prev =>
-        prev ? { ...prev, title: editTitle, alt_text: editAlt, description: editDescription } : null
+        prev ? { ...prev, title: editTitle, alt_text: editAlt, caption: editCaption, description: editDescription } : null
       );
     } catch (err) {
       setError('Impossible de sauvegarder les métadonnées');
@@ -266,6 +272,13 @@ export default function MediaUploader({
               className={mode === 'avatar' ? 'object-cover' : 'object-contain'}
             />
           </div>
+          
+          {/* Légende sous l'image */}
+          {currentMedia.caption && (
+            <p className="text-sm text-gray-400 italic text-center">
+              {currentMedia.caption}
+            </p>
+          )}
           
           {/* Infos et actions */}
           <div className="flex items-center justify-between">
@@ -494,6 +507,20 @@ export default function MediaUploader({
                         onBlur={handleSaveMetadata}
                         className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-sm"
                         placeholder="Description pour l'accessibilité"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Légende
+                      </label>
+                      <textarea
+                        value={editCaption}
+                        onChange={(e) => setEditCaption(e.target.value)}
+                        onBlur={handleSaveMetadata}
+                        rows={2}
+                        className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-sm"
+                        placeholder="Légende affichée sous l'image"
                       />
                     </div>
                     

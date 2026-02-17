@@ -74,21 +74,7 @@ export async function buildSiteBlueprint(siteId: string): Promise<BlueprintV1> {
     status: p.status || 'draft',
   }));
 
-  // 6. Load content types
-  const { data: contentTypesData } = await supabase
-    .from('content_types')
-    .select('key, label, status, rules_json')
-    .eq('site_id', siteId)
-    .order('key');
-
-  const contentTypes = (contentTypesData || []).map(ct => ({
-    key: ct.key,
-    label: ct.label,
-    status: ct.status || 'active',
-    rulesJson: ct.rules_json,
-  }));
-
-  // 7. Load SEO defaults and bootstrap stats
+  // 6. Load SEO defaults and bootstrap stats
   const { data: siteSeoMeta } = await supabase
     .from('seo_meta')
     .select('*')
@@ -149,8 +135,6 @@ export async function buildSiteBlueprint(siteId: string): Promise<BlueprintV1> {
     },
     
     pages,
-    
-    contentTypes,
     
     seoDefaults,
     

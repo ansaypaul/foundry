@@ -29,17 +29,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const { blueprint, version } = blueprintResult;
 
-    // Desired content types from blueprint
-    const desiredContentTypes = blueprint.contentTypes;
-
-    // Get existing content types from DB
+    // Get desired content types from editorial_content_types table
     const supabase = getSupabaseAdmin();
+    const { data: editorialContentTypes } = await supabase
+      .from('editorial_content_types')
+      .select('*')
+      .order('key');
+
+    // Get existing content types for this site from DB
     const { data: existingContentTypes } = await supabase
       .from('content_types')
       .select('key')
       .eq('site_id', id);
 
     const existingKeys = (existingContentTypes || []).map(ct => ct.key);
+    const desiredContentTypes = editorialContentTypes || [];
 
     // Compute missing (diff)
     const missingContentTypes = desiredContentTypes.filter(
@@ -85,10 +89,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }, { status: 404 });
     }
 
-    const { blueprint } = blueprintResult;
-    const desiredContentTypes = blueprint.contentTypes;
-
     const supabase = getSupabaseAdmin();
+
+    // Get desired content types from editorial_content_types table
+    const { data: editorialContentTypes } = await supabase
+      .from('editorial_content_types')
+      .select('*')
+      .order('key');
+
+    const desiredContentTypes = editorialContentTypes || [];
 
     // Get existing content types
     const { data: existingContentTypes } = await supabase
@@ -115,7 +124,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       site_id: id,
       key: ct.key,
       label: ct.label,
-      rules_json: ct.rules,
+      rules_json: ct.rules_json,
       status: 'active',
     }));
 

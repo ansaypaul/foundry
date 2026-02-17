@@ -162,18 +162,31 @@ export default async function ContentView({
 
           {/* Image à la une */}
           {featuredMedia && (
-            <div className="relative w-full aspect-video mb-8 rounded-lg overflow-hidden">
-              <Image
-                src={featuredMedia.url}
-                alt={featuredMedia.alt_text || content.title}
-                fill
-                className="object-cover"
-                priority={true}
-                loading="eager"
-                sizes="(max-width: 768px) 100vw, 896px"
-                {...({ fetchPriority: 'high' } as any)}
-              />
-            </div>
+            <figure className="mb-8">
+              <div className="relative w-full aspect-video rounded-lg overflow-hidden">
+                <Image
+                  src={featuredMedia.url}
+                  alt={featuredMedia.alt_text || content.title}
+                  fill
+                  className="object-cover"
+                  priority={true}
+                  loading="eager"
+                  sizes="(max-width: 768px) 100vw, 896px"
+                  {...({ fetchPriority: 'high' } as any)}
+                />
+              </div>
+              {featuredMedia.caption && (
+                <figcaption 
+                  className="text-sm text-center mt-3 italic"
+                  style={{ 
+                    color: 'var(--color-text)',
+                    opacity: 0.7
+                  }}
+                >
+                  {featuredMedia.caption}
+                </figcaption>
+              )}
+            </figure>
           )}
 
           {/* Contenu HTML */}
