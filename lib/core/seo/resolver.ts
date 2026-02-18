@@ -98,7 +98,7 @@ function resolveTitle(context: SeoContext): string {
 
   // 1. Custom SEO title
   if (entity && 'seo_title' in entity && entity.seo_title) {
-    return truncate(sanitize(entity.seo_title), SEO_LIMITS.TITLE_MAX);
+    return sanitize(entity.seo_title); // Pas de troncature, Google le fera
   }
 
   // 2. Build from template
@@ -131,7 +131,7 @@ function resolveTitle(context: SeoContext): string {
   }
 
   const rendered = renderTemplate(template, variables);
-  return truncate(rendered, SEO_LIMITS.TITLE_MAX);
+  return rendered; // Pas de troncature, Google le fera
 }
 
 // ===================================
@@ -147,34 +147,34 @@ function resolveDescription(context: SeoContext): string {
 
   // 1. Custom SEO description
   if (entity && 'seo_description' in entity && entity.seo_description) {
-    return truncate(sanitize(entity.seo_description), SEO_LIMITS.DESCRIPTION_MAX);
+    return sanitize(entity.seo_description); // Pas de troncature
   }
 
   // 2. Content excerpt
   if (entity && 'excerpt' in entity && entity.excerpt) {
-    return truncate(sanitize(entity.excerpt), SEO_LIMITS.DESCRIPTION_MAX);
+    return sanitize(entity.excerpt); // Pas de troncature
   }
 
   // 3. Term description
   if (entity && 'description' in entity && entity.description) {
-    return truncate(sanitize(entity.description), SEO_LIMITS.DESCRIPTION_MAX);
+    return sanitize(entity.description); // Pas de troncature
   }
 
   // 4. Extract from content_html (first paragraph)
   if (entity && 'content_html' in entity && entity.content_html) {
     const firstParagraph = extractFirstParagraph(entity.content_html);
     if (firstParagraph) {
-      return truncate(sanitize(firstParagraph), SEO_LIMITS.DESCRIPTION_MAX);
+      return sanitize(firstParagraph); // Pas de troncature
     }
   }
 
   // 5. Global default
   if (settings?.site_description) {
-    return truncate(sanitize(settings.site_description), SEO_LIMITS.DESCRIPTION_MAX);
+    return sanitize(settings.site_description); // Pas de troncature
   }
 
   // 6. Ultimate fallback
-  return truncate(`Découvrez ${context.siteName}`, SEO_LIMITS.DESCRIPTION_MAX);
+  return `Découvrez ${context.siteName}`; // Pas de troncature
 }
 
 /**
