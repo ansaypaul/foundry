@@ -190,7 +190,7 @@ INSERT INTO seo_settings (site_id, site_name, site_tagline)
 VALUES (
     '00000000-0000-0000-0000-000000000001',
     'Site de développement',
-    'Propulsé par Foundry'
+    'Votre site web'
 )
 ON CONFLICT (site_id) DO NOTHING;
 

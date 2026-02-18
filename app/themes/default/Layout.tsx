@@ -74,7 +74,7 @@ export default function DefaultLayout({ siteName, menus, children }: Props) {
         color: 'white'
       }}>
         <div className="max-w-7xl mx-auto px-6 text-center">
-          <p>&copy; {new Date().getFullYear()} {siteName}. Propulsé par Foundry.</p>
+          <p>&copy; {new Date().getFullYear()} {siteName}. Tous droits réservés.</p>
         </div>
       </footer>
     </div>

@@ -63,7 +63,6 @@ export default async function SiteLayout({ children, params }: LayoutProps) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>
                 <h3 className="text-lg font-bold text-gray-900 mb-3">{site.name}</h3>
-                <p className="text-sm text-gray-600">Propulsé par Foundry CMS</p>
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wider">Navigation</h4>
@@ -131,7 +130,6 @@ export default async function SiteLayout({ children, params }: LayoutProps) {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem' }}>
               <div>
                 <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', marginBottom: '0.75rem' }}>{site.name}</h3>
-                <p style={{ fontSize: '0.875rem', opacity: 0.8 }}>Propulsé par Foundry CMS</p>
               </div>
               <div>
                 <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
