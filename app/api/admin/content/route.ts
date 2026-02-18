@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { createContent } from '@/lib/db/queries';
 import { getSupabaseAdmin } from '@/lib/db/client';
 
@@ -92,6 +93,17 @@ export async function POST(request: NextRequest) {
       featured_media_id: featured_media_id || null,
       new_author_id: new_author_id || null,
     });
+
+    // Invalider le cache de la home du site
+    try {
+      revalidatePath(`/sites/${site_id}`);
+      // Si publié, invalider aussi la page de l'article
+      if (status === 'published') {
+        revalidatePath(`/sites/${site_id}/${normalizedSlug}`);
+      }
+    } catch (error) {
+      console.error('Error revalidating paths:', error);
+    }
 
     return NextResponse.json({ content }, { status: 201 });
   } catch (error: any) {

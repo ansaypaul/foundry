@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { getSupabaseAdmin } from '@/lib/db/client';
 import { upsertSeoMeta } from '@/lib/db/seo-queries';
 
@@ -110,6 +111,17 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       }
     }
 
+    // Invalider le cache pour cet article
+    try {
+      // Revalider la page de l'article
+      revalidatePath(`/sites/${updated.site_id}/${updated.slug}`);
+      // Revalider la home du site
+      revalidatePath(`/sites/${updated.site_id}`);
+    } catch (error) {
+      console.error('Error revalidating paths:', error);
+      // On ne fail pas si la revalidation échoue
+    }
+
     return NextResponse.json({ content: updated });
   } catch (error: any) {
     console.error('Error updating content:', error);
@@ -133,6 +145,13 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const { id } = await params;
     const supabase = getSupabaseAdmin();
 
+    // Récupérer les infos avant suppression pour revalidation
+    const { data: existing } = await supabase
+      .from('content')
+      .select('site_id, slug')
+      .eq('id', id)
+      .single();
+
     // Supprimer le contenu
     const { error } = await supabase
       .from('content')
@@ -141,6 +160,16 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     if (error) {
       throw error;
+    }
+
+    // Invalider le cache
+    if (existing) {
+      try {
+        revalidatePath(`/sites/${existing.site_id}/${existing.slug}`);
+        revalidatePath(`/sites/${existing.site_id}`);
+      } catch (error) {
+        console.error('Error revalidating paths:', error);
+      }
     }
 
     return NextResponse.json({ success: true });
