@@ -6,13 +6,7 @@ export default function ThemedSiteHeader({ siteName }: { siteName: string }) {
   return (
     <PreviewLink 
       href="/" 
-      style={{ 
-        fontSize: '1.5rem', 
-        fontWeight: 'bold',
-        color: 'var(--color-primary)',
-        textDecoration: 'none',
-        fontFamily: 'var(--font-heading)'
-      }}
+      className="text-2xl font-bold text-primary no-underline font-heading"
     >
       {siteName}
     </PreviewLink>

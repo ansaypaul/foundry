@@ -1,69 +1,26 @@
 export default function NotFound() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-16 text-center">
-      <div 
-        style={{
-          backgroundColor: 'var(--color-background)',
-          borderRadius: '0.5rem',
-          padding: '3rem 2rem',
-          border: '1px solid var(--color-border)',
-        }}
-      >
+      <div className="bg-theme-bg rounded-lg px-8 py-12 border border-theme-border">
         {/* 404 */}
-        <h1 
-          style={{
-            fontSize: '6rem',
-            fontWeight: 'bold',
-            color: 'var(--color-primary)',
-            fontFamily: 'var(--font-heading)',
-            marginBottom: '1rem',
-            lineHeight: 1
-          }}
-        >
+        <h1 className="text-[6rem] font-bold text-primary font-heading mb-4 leading-none">
           404
         </h1>
 
         {/* Titre */}
-        <h2 
-          style={{
-            fontSize: '2rem',
-            fontWeight: '600',
-            color: 'var(--color-text)',
-            fontFamily: 'var(--font-heading)',
-            marginBottom: '1rem'
-          }}
-        >
+        <h2 className="text-[2rem] font-semibold text-theme-text font-heading mb-4">
           Page introuvable
         </h2>
 
         {/* Description */}
-        <p 
-          style={{
-            fontSize: '1.125rem',
-            color: 'var(--color-text)',
-            opacity: 0.7,
-            marginBottom: '2rem',
-            fontFamily: 'var(--font-body)'
-          }}
-        >
+        <p className="text-lg text-theme-text opacity-70 mb-8 font-body">
           La page que vous recherchez n'existe pas ou a été déplacée.
         </p>
 
         {/* Bouton retour */}
         <a
           href="/"
-          className="hover:opacity-90"
-          style={{
-            display: 'inline-block',
-            padding: '0.75rem 2rem',
-            backgroundColor: 'var(--color-primary)',
-            color: '#ffffff',
-            fontWeight: '600',
-            borderRadius: '0.375rem',
-            textDecoration: 'none',
-            fontFamily: 'var(--font-body)',
-            transition: 'opacity 0.2s'
-          }}
+          className="inline-block py-3 px-8 bg-primary text-white font-semibold rounded-md no-underline font-body transition-opacity hover:opacity-90"
         >
           Retour à l'accueil
         </a>

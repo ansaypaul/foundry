@@ -26,20 +26,8 @@ export default function CategoriesModule({ categories, config }: Props) {
   }
 
   return (
-    <div 
-      className="rounded-lg p-4"
-      style={{ 
-        backgroundColor: 'var(--color-background)',
-        border: '1px solid var(--color-border)',
-      }}
-    >
-      <h3 
-        className="text-lg font-bold mb-4"
-        style={{ 
-          color: 'var(--color-text)',
-          fontFamily: 'var(--font-heading)'
-        }}
-      >
+    <div className="rounded-lg p-4 bg-theme-bg border border-theme-border">
+      <h3 className="text-lg font-bold mb-4 text-theme-text font-heading">
         Catégories
       </h3>
       <ul className="space-y-2">
@@ -49,18 +37,11 @@ export default function CategoriesModule({ categories, config }: Props) {
               href={`/category/${category.slug}`}
               className="flex items-center justify-between hover:opacity-80 transition-opacity py-1"
             >
-              <span style={{ color: 'var(--color-text)' }}>
+              <span className="text-theme-text">
                 {category.name}
               </span>
               {showCount && category.post_count !== undefined && (
-                <span 
-                  className="text-xs px-2 py-1 rounded"
-                  style={{ 
-                    backgroundColor: 'var(--color-primary)',
-                    color: 'white',
-                    opacity: 0.8
-                  }}
-                >
+                <span className="text-xs px-2 py-1 rounded bg-primary text-white opacity-80">
                   {category.post_count}
                 </span>
               )}

@@ -21,7 +21,6 @@ export default async function ContentView({
   isPreview = false,
   isAuthenticated = false 
 }: ContentViewProps) {
-  // Charger l'image à la une si présente
   let featuredMedia: any = null;
   if (content.featured_media_id) {
     const supabase = getSupabaseAdmin();
@@ -34,7 +33,6 @@ export default async function ContentView({
     featuredMedia = data;
   }
 
-  // Récupérer la config du thème pour les articles
   const fullSite = await getSiteById(siteId);
   const theme = fullSite?.theme_id ? await getThemeById(fullSite.theme_id) : null;
   
@@ -52,12 +50,11 @@ export default async function ContentView({
   const themeModulesConfig = (theme as any)?.modules_config?.single;
   const singleConfig = siteModulesConfig || themeModulesConfig || defaultSingleConfig;
 
-  // Récupérer les données pour la sidebar
   const recentPosts = content.type === 'post' ? await getPublishedPostsBySiteId(siteId, 5) : [];
   const categories = content.type === 'post' ? await getCategoriesWithCount(siteId) : [];
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
+    <div className="min-h-screen bg-theme-bg">
       <SingleLayout 
         sidebar={content.type === 'post' ? singleConfig.sidebar : undefined}
         data={{
@@ -70,13 +67,7 @@ export default async function ContentView({
           {/* Preview & Type badges */}
           <div className="mb-4 flex gap-2">
             {content.type === 'post' && (
-              <span 
-                className="px-3 py-1 text-sm rounded-full font-medium"
-                style={{ 
-                  backgroundColor: 'var(--color-primary)',
-                  color: 'white'
-                }}
-              >
+              <span className="px-3 py-1 text-sm rounded-full font-medium bg-primary text-white">
                 Article
               </span>
             )}
@@ -88,26 +79,13 @@ export default async function ContentView({
           </div>
 
           {/* Titre */}
-          <h1 
-            className="text-4xl md:text-5xl font-bold mb-4"
-            style={{ 
-              color: 'var(--color-text)',
-              fontFamily: 'var(--font-heading)'
-            }}
-          >
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-theme-text font-heading">
             {content.title}
           </h1>
 
           {/* Métadonnées pour les articles */}
           {content.type === 'post' && (
-            <div 
-              className="flex items-center gap-4 text-sm mb-8 pb-8"
-              style={{ 
-                color: 'var(--color-text)',
-                opacity: 0.7,
-                borderBottom: '1px solid var(--color-border)'
-              }}
-            >
+            <div className="flex items-center gap-4 text-sm mb-8 pb-8 text-theme-text opacity-70 border-b border-theme-border">
               {/* Auteur */}
               {(content as any).author && (
                 <div className="flex items-center gap-2">
@@ -117,14 +95,12 @@ export default async function ContentView({
                       alt={(content as any).author.display_name}
                       width={32}
                       height={32}
-                      className="rounded-full object-cover"
-                      style={{ width: '32px', height: '32px' }}
+                      className="rounded-full object-cover w-8 h-8"
                     />
                   )}
                   <PreviewLink 
                     href={`/author/${(content as any).author.slug}`}
-                    className="font-medium hover:opacity-80"
-                    style={{ color: 'var(--color-primary)' }}
+                    className="font-medium hover:opacity-80 text-primary"
                   >
                     {(content as any).author.display_name}
                   </PreviewLink>
@@ -149,13 +125,7 @@ export default async function ContentView({
 
           {/* Extrait */}
           {content.excerpt && (
-            <div 
-              className="text-xl mb-8 leading-relaxed"
-              style={{ 
-                color: 'var(--color-text)',
-                opacity: 0.8
-              }}
-            >
+            <div className="text-xl mb-8 leading-relaxed text-theme-text opacity-80">
               {content.excerpt}
             </div>
           )}
@@ -176,13 +146,7 @@ export default async function ContentView({
                 />
               </div>
               {featuredMedia.caption && (
-                <figcaption 
-                  className="text-sm text-center mt-3 italic"
-                  style={{ 
-                    color: 'var(--color-text)',
-                    opacity: 0.7
-                  }}
-                >
+                <figcaption className="text-sm text-center mt-3 italic text-theme-text opacity-70">
                   {featuredMedia.caption}
                 </figcaption>
               )}
@@ -199,17 +163,16 @@ export default async function ContentView({
 
           {/* Pas de contenu */}
           {!content.content_html && (
-            <div style={{ color: 'var(--color-text)', opacity: 0.5 }} className="italic">
+            <div className="italic text-theme-text opacity-50">
               Aucun contenu disponible.
             </div>
           )}
 
           {/* Navigation */}
-          <div className="mt-12 pt-8" style={{ borderTop: '1px solid var(--color-border)' }}>
+          <div className="mt-12 pt-8 border-t border-theme-border">
             <PreviewLink 
               href="/" 
-              className="inline-flex items-center font-medium hover:opacity-80 transition-opacity"
-              style={{ color: 'var(--color-primary)' }}
+              className="inline-flex items-center font-medium hover:opacity-80 transition-opacity text-primary"
             >
               ← Retour aux articles
             </PreviewLink>

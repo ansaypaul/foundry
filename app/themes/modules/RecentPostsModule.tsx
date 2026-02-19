@@ -26,39 +26,23 @@ export default function RecentPostsModule({ posts, config }: Props) {
   }
 
   return (
-    <div 
-      className="rounded-lg p-4"
-      style={{ 
-        backgroundColor: 'var(--color-background)',
-        border: '1px solid var(--color-border)',
-      }}
-    >
-      <h3 
-        className="text-lg font-bold mb-4"
-        style={{ 
-          color: 'var(--color-text)',
-          fontFamily: 'var(--font-heading)'
-        }}
-      >
+    <div className="rounded-lg p-4 bg-theme-bg border border-theme-border">
+      <h3 className="text-lg font-bold mb-4 text-theme-text font-heading">
         Articles récents
       </h3>
       <ul className="space-y-3">
         {displayedPosts.map((post) => (
-          <li key={post.id} className="pb-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
+          <li key={post.id} className="pb-3 border-b border-theme-border">
             <PreviewLink
               href={`/${post.slug}`}
               className="block hover:opacity-80 transition-opacity"
             >
-              <h4 
-                className="text-sm font-medium mb-1"
-                style={{ color: 'var(--color-text)' }}
-              >
+              <h4 className="text-sm font-medium mb-1 text-theme-text">
                 {post.title}
               </h4>
               {showDate && post.published_at && (
                 <time 
-                  className="text-xs"
-                  style={{ color: 'var(--color-text)', opacity: 0.6 }}
+                  className="text-xs text-theme-text opacity-60"
                   dateTime={new Date(post.published_at).toISOString()}
                 >
                   {new Date(post.published_at).toLocaleDateString('fr-FR', {

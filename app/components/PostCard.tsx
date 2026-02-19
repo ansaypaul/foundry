@@ -25,7 +25,7 @@ interface Props {
   showExcerpt?: boolean;
   showDate?: boolean;
   showAuthor?: boolean;
-  priority?: boolean; // Pour optimiser le LCP sur la première image
+  priority?: boolean;
 }
 
 export default function PostCard({ 
@@ -38,13 +38,7 @@ export default function PostCard({
   priority = false
 }: Props) {
   return (
-    <article 
-      className="group rounded-lg overflow-hidden transition-shadow hover:shadow-lg"
-      style={{ 
-        backgroundColor: 'var(--color-background)',
-        border: '1px solid var(--color-border)',
-      }}
-    >
+    <article className="group rounded-lg overflow-hidden transition-shadow hover:shadow-lg bg-theme-bg border border-theme-border">
       {/* Image */}
       {showImage && post.featured_image_url && (
         <PreviewLink href={`/${post.slug}`} className="block relative aspect-video overflow-hidden">
@@ -63,26 +57,14 @@ export default function PostCard({
         {/* Badge catégorie */}
         {showCategory && post.category_name && (
           <div className="mb-3">
-            <span 
-              className="inline-block px-3 py-1 text-xs font-semibold uppercase rounded"
-              style={{ 
-                backgroundColor: 'var(--color-primary)',
-                color: 'white'
-              }}
-            >
+            <span className="inline-block px-3 py-1 text-xs font-semibold uppercase rounded bg-primary text-white">
               {post.category_name}
             </span>
           </div>
         )}
 
         {/* Titre */}
-        <h2 
-          className="text-xl font-bold mb-3 group-hover:opacity-80 transition-opacity"
-          style={{ 
-            color: 'var(--color-text)',
-            fontFamily: 'var(--font-heading)'
-          }}
-        >
+        <h2 className="text-xl font-bold mb-3 group-hover:opacity-80 transition-opacity text-theme-text font-heading">
           <PreviewLink href={`/${post.slug}`}>
             {post.title}
           </PreviewLink>
@@ -90,27 +72,14 @@ export default function PostCard({
 
         {/* Extrait */}
         {showExcerpt && post.excerpt && (
-          <p 
-            className="mb-4 leading-relaxed line-clamp-3"
-            style={{ 
-              color: 'var(--color-text)',
-              opacity: 0.8
-            }}
-          >
+          <p className="mb-4 leading-relaxed line-clamp-3 text-theme-text opacity-80">
             {post.excerpt}
           </p>
         )}
 
         {/* Meta (auteur + date) */}
         {(showAuthor || showDate) && (
-          <div 
-            className="flex items-center gap-2 text-sm pt-4"
-            style={{ 
-              borderTop: '1px solid var(--color-border)',
-              color: 'var(--color-text)',
-              opacity: 0.7
-            }}
-          >
+          <div className="flex items-center gap-2 text-sm pt-4 border-t border-theme-border text-theme-text opacity-70">
             {showAuthor && (post.author || post.author_name) && (
               <>
                 <span className="font-medium">

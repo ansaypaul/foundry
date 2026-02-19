@@ -41,6 +41,8 @@ export interface ThemeModulesConfig {
   post?: PageModulesConfig;
   category?: PageModulesConfig;
   tag?: PageModulesConfig;
+  author?: PageModulesConfig;
+  single?: PageModulesConfig;
 }
 
 export interface Theme {

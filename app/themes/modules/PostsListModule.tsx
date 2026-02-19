@@ -27,7 +27,7 @@ export default function PostsListModule({ posts, config }: Props) {
 
   if (posts.length === 0) {
     return (
-      <div className="text-center py-12" style={{ color: 'var(--color-text)', opacity: 0.6 }}>
+      <div className="text-center py-12 text-theme-text opacity-60">
         <p>Aucun article publié pour le moment.</p>
       </div>
     );

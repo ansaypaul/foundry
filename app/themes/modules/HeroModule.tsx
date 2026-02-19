@@ -16,21 +16,12 @@ export default function HeroModule({ siteName, siteTagline, config }: Props) {
   return (
     <div className={`mb-12 ${centered ? 'text-center' : ''}`}>
       {showTitle && (
-        <h1 
-          className="text-4xl font-bold mb-4"
-          style={{ 
-            color: 'var(--color-text)',
-            fontFamily: 'var(--font-heading)'
-          }}
-        >
+        <h1 className="text-4xl font-bold mb-4 text-theme-text font-heading">
           Bienvenue sur {siteName}
         </h1>
       )}
       {showTagline && siteTagline && (
-        <p 
-          className="text-xl"
-          style={{ color: 'var(--color-text)', opacity: 0.8 }}
-        >
+        <p className="text-xl text-theme-text opacity-80">
           {siteTagline}
         </p>
       )}

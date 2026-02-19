@@ -126,39 +126,17 @@ export default async function CategoryPage({ params }: PageProps) {
   return (
     <div>
       {/* Header catégorie */}
-      <div 
-        className="py-12 mb-8"
-        style={{ 
-          backgroundColor: 'var(--color-background)',
-          borderBottom: '1px solid var(--color-border)'
-        }}
-      >
+      <div className="py-12 mb-8 bg-theme-bg border-b border-theme-border">
         <div className="max-w-7xl mx-auto px-6">
-          <span 
-            className="inline-block px-3 py-1 text-sm rounded-full font-medium mb-4"
-            style={{ 
-              backgroundColor: 'var(--color-primary)',
-              color: 'white'
-            }}
-          >
+          <span className="inline-block px-3 py-1 text-sm rounded-full font-medium mb-4 bg-primary text-white">
             Catégorie
           </span>
-          <h1 
-            className="text-4xl font-bold mb-4"
-            style={{ 
-              color: 'var(--color-text)',
-              fontFamily: 'var(--font-heading)'
-            }}
-          >
+          <h1 className="text-4xl font-bold mb-4 text-theme-text font-heading">
             {category.name}
           </h1>
           {category.description && (
             <div 
-              className="text-xl prose prose-lg max-w-none"
-              style={{ 
-                color: 'var(--color-text)',
-                opacity: 0.8
-              }}
+              className="text-xl prose prose-lg max-w-none text-theme-text opacity-80"
               dangerouslySetInnerHTML={{ __html: category.description }}
             />
           )}

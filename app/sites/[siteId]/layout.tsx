@@ -98,29 +98,13 @@ export default async function SiteLayout({ children, params }: LayoutProps) {
         <CustomHeadCode code={(site as any).custom_head_code} />
       )}
       
-      <div 
-        style={{ 
-          backgroundColor: 'var(--color-background)',
-          color: 'var(--color-text)',
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column'
-        }}
-      >
+      <div className="bg-theme-bg text-theme-text min-h-screen flex flex-col">
         {/* Header avec couleurs du thème */}
-        <header 
-          style={{ 
-            borderBottom: '1px solid var(--color-border)',
-            position: 'sticky',
-            top: 0,
-            zIndex: 50,
-            backgroundColor: 'var(--color-background)'
-          }}
-        >
+        <header className="border-b border-theme-border sticky top-0 z-50 bg-theme-bg">
           <div className="max-w-7xl mx-auto px-6">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '4rem' }}>
+            <div className="flex items-center justify-between h-16">
               <ThemedSiteHeader siteName={site.name} />
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div className="flex items-center gap-4">
                 <SiteMenu siteId={site.id} location="header" className="hidden md:flex" />
                 <MobileMenu siteName={site.name} menuItems={menuItems} />
               </div>
@@ -129,33 +113,26 @@ export default async function SiteLayout({ children, params }: LayoutProps) {
         </header>
 
         {/* Main content */}
-        <main style={{ flex: 1 }}>
+        <main className="flex-1">
           {children}
         </main>
 
         {/* Footer avec couleurs du thème */}
-        <footer 
-          style={{ 
-            borderTop: '1px solid var(--color-border)',
-            marginTop: '5rem',
-            backgroundColor: 'var(--color-secondary)',
-            color: '#fff'
-          }}
-        >
+        <footer className="border-t border-theme-border mt-20 bg-secondary text-white">
           <div className="max-w-7xl mx-auto px-6 py-12">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem' }}>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-8">
               <div>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: 'bold', marginBottom: '0.75rem' }}>{site.name}</h3>
+                <h3 className="text-lg font-bold mb-3">{site.name}</h3>
               </div>
               <div>
-                <h4 style={{ fontSize: '0.875rem', fontWeight: '600', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <h4 className="text-sm font-semibold mb-4 uppercase tracking-wider">
                   Navigation
                 </h4>
                 <SiteMenu siteId={site.id} location="footer" />
               </div>
-              <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
-                <p style={{ fontWeight: '500' }}>© {new Date().getFullYear()} {site.name}</p>
-                <p style={{ marginTop: '0.5rem' }}>Tous droits réservés</p>
+              <div className="text-sm opacity-80">
+                <p className="font-medium">© {new Date().getFullYear()} {site.name}</p>
+                <p className="mt-2">Tous droits réservés</p>
               </div>
             </div>
           </div>

@@ -11,44 +11,26 @@ export default function DefaultLayout({ siteName, menus, children }: Props) {
   const theme = useTheme();
 
   return (
-    <div style={{ 
-      backgroundColor: 'var(--color-background)', 
-      color: 'var(--color-text)',
-      minHeight: '100vh',
-      fontFamily: 'var(--font-body)'
-    }}>
+    <div className="bg-theme-bg text-theme-text min-h-screen font-body">
       {/* Header */}
-      <header style={{ 
-        borderBottom: `1px solid var(--color-border)`,
-        padding: '1rem 0'
-      }}>
+      <header className="border-b border-theme-border py-4">
         <div className="max-w-7xl mx-auto px-6">
           <Link 
             href="/" 
-            style={{ 
-              fontSize: '1.5rem', 
-              fontWeight: 'bold',
-              color: 'var(--color-primary)',
-              textDecoration: 'none',
-              fontFamily: 'var(--font-heading)'
-            }}
+            className="text-2xl font-bold text-primary no-underline font-heading"
           >
             {siteName}
           </Link>
           
           {/* Menu */}
           {menus?.header && (
-            <nav style={{ marginTop: '1rem' }}>
-              <ul style={{ display: 'flex', gap: '1.5rem', listStyle: 'none', padding: 0 }}>
+            <nav className="mt-4">
+              <ul className="flex gap-6 list-none p-0">
                 {menus.header.map((item: any) => (
                   <li key={item.id}>
                     <Link 
                       href={item.url}
-                      style={{ 
-                        color: 'var(--color-text)',
-                        textDecoration: 'none',
-                        transition: 'color 0.2s'
-                      }}
+                      className="text-theme-text no-underline transition-colors duration-200"
                     >
                       {item.label}
                     </Link>
@@ -66,13 +48,7 @@ export default function DefaultLayout({ siteName, menus, children }: Props) {
       </main>
 
       {/* Footer */}
-      <footer style={{ 
-        borderTop: `1px solid var(--color-border)`,
-        padding: '2rem 0',
-        marginTop: '4rem',
-        backgroundColor: 'var(--color-secondary)',
-        color: 'white'
-      }}>
+      <footer className="border-t border-theme-border py-8 mt-16 bg-secondary text-white">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <p>&copy; {new Date().getFullYear()} {siteName}. Tous droits réservés.</p>
         </div>

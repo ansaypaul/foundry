@@ -12,16 +12,12 @@ interface CategoryViewProps {
 }
 
 export default async function CategoryView({ category, siteId, siteName }: CategoryViewProps) {
-  // Récupérer les articles de cette catégorie (enrichis avec auteur + image)
   const rawPosts = await getContentByTermId(category.id);
   
-  // Enrichir avec les données manquantes (auteur, image, catégorie)
   const supabase = getSupabaseAdmin();
   const enrichedPosts = await Promise.all(
     rawPosts.map(async (post: any) => {
-      // Récupérer l'auteur
       const { data: author } = await supabase.from('users').select('name').eq('id', post.author_id).single();
-      // Récupérer l'image
       const { data: media } = post.featured_media_id 
         ? await supabase.from('media').select('url').eq('id', post.featured_media_id).single()
         : { data: null };
@@ -35,7 +31,6 @@ export default async function CategoryView({ category, siteId, siteName }: Categ
     })
   );
 
-  // Récupérer le thème et la config
   const fullSite = await getSiteById(siteId);
   const theme = fullSite?.theme_id ? await getThemeById(fullSite.theme_id) : null;
   
@@ -61,45 +56,22 @@ export default async function CategoryView({ category, siteId, siteName }: Categ
   const themeModulesConfig = (theme as any)?.modules_config?.category;
   const categoryConfig = siteModulesConfig || themeModulesConfig || defaultConfig;
 
-  // Récupérer les catégories pour la sidebar
   const categories = await getCategoriesWithCount(siteId);
 
   return (
     <div>
       {/* Header catégorie */}
-      <div 
-        className="py-12 mb-8"
-        style={{ 
-          backgroundColor: 'var(--color-background)',
-          borderBottom: '1px solid var(--color-border)'
-        }}
-      >
+      <div className="py-12 mb-8 bg-theme-bg border-b border-theme-border">
         <div className="max-w-7xl mx-auto px-6">
-          <span 
-            className="inline-block px-3 py-1 text-sm rounded-full font-medium mb-4"
-            style={{ 
-              backgroundColor: 'var(--color-primary)',
-              color: 'white'
-            }}
-          >
+          <span className="inline-block px-3 py-1 text-sm rounded-full font-medium mb-4 bg-primary text-white">
             Catégorie
           </span>
-          <h1 
-            className="text-4xl font-bold mb-4"
-            style={{ 
-              color: 'var(--color-text)',
-              fontFamily: 'var(--font-heading)'
-            }}
-          >
+          <h1 className="text-4xl font-bold mb-4 text-theme-text font-heading">
             {category.name}
           </h1>
           {category.description && (
             <div 
-              className="text-xl prose prose-lg max-w-none"
-              style={{ 
-                color: 'var(--color-text)',
-                opacity: 0.8
-              }}
+              className="text-xl prose prose-lg max-w-none text-theme-text opacity-80"
               dangerouslySetInnerHTML={{ __html: category.description }}
             />
           )}

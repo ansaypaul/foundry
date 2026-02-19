@@ -31,8 +31,8 @@ export default function PostsGridModule({ posts, config }: Props) {
 
   if (displayedPosts.length === 0) {
     return (
-      <div className="text-center py-12 rounded-lg" style={{ backgroundColor: 'var(--color-background)', opacity: 0.5 }}>
-        <p style={{ color: 'var(--color-text)' }}>Aucun article publié pour le moment.</p>
+      <div className="text-center py-12 rounded-lg bg-theme-bg opacity-50">
+        <p className="text-theme-text">Aucun article publié pour le moment.</p>
       </div>
     );
   }
