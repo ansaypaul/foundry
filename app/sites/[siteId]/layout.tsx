@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Script from 'next/script';
 import { getSiteById } from '@/lib/db/queries';
 import { getThemeById } from '@/lib/db/themes-queries';
 import { getMenuByLocation } from '@/lib/db/menus-queries';
@@ -7,6 +6,7 @@ import SiteMenu from '@/app/components/SiteMenu';
 import SiteHeader from '@/app/components/SiteHeader';
 import ThemedSiteHeader from '@/app/components/ThemedSiteHeader';
 import MobileMenu from '@/app/components/MobileMenu';
+import CustomHeadCode from '@/app/components/CustomHeadCode';
 import { ThemeProvider } from '@/app/themes/ThemeProvider';
 import '@/app/content-styles.css';
 
@@ -47,9 +47,8 @@ export default async function SiteLayout({ children, params }: LayoutProps) {
   if (!theme) {
     return (
       <>
-        {/* Code personnalisé dans le head */}
         {(site as any).custom_head_code && (
-          <div dangerouslySetInnerHTML={{ __html: (site as any).custom_head_code }} />
+          <CustomHeadCode code={(site as any).custom_head_code} />
         )}
         
         <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -95,9 +94,8 @@ export default async function SiteLayout({ children, params }: LayoutProps) {
   // Appliquer le thème avec variables CSS
   return (
     <ThemeProvider theme={theme}>
-      {/* Code personnalisé dans le head */}
       {(site as any).custom_head_code && (
-        <div dangerouslySetInnerHTML={{ __html: (site as any).custom_head_code }} />
+        <CustomHeadCode code={(site as any).custom_head_code} />
       )}
       
       <div 
