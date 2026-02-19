@@ -274,10 +274,12 @@ function resolveOpenGraph(
     ogDescription = sanitize(entity.seo_og_description);
   }
 
-  // Image
+  // Image: seo_og_image > featured_media > default_og_image
   let ogImage: string | null = null;
   if (entity && 'seo_og_image' in entity && entity.seo_og_image) {
     ogImage = entity.seo_og_image;
+  } else if (entity && 'featured_media' in entity && (entity as any).featured_media?.url) {
+    ogImage = (entity as any).featured_media.url;
   } else if (settings?.default_og_image) {
     ogImage = settings.default_og_image;
   }
@@ -377,6 +379,26 @@ function resolveSchema(context: SeoContext, meta: ResolvedSeoMeta) {
     const content = context.entity as Content;
     if (content.type === 'post' && content.status === 'published') {
       const articleType = context.settings?.schema_article_type || 'Article';
+      const articleUrl = buildAbsoluteUrl(context.siteUrl, context.currentPath);
+
+      const authorUrl = context.author?.website_url
+        || (context.author?.slug
+          ? buildAbsoluteUrl(context.siteUrl, `/author/${context.author.slug}`)
+          : undefined);
+
+      const authorBio = context.author?.bio
+        ? context.author.bio.replace(/<[^>]*>/g, '').trim()
+        : undefined;
+
+      const sameAs = context.author
+        ? [
+            context.author.twitter_username ? `https://twitter.com/${context.author.twitter_username}` : null,
+            context.author.facebook_url,
+            context.author.linkedin_url,
+            context.author.instagram_username ? `https://instagram.com/${context.author.instagram_username}` : null,
+            context.author.github_username ? `https://github.com/${context.author.github_username}` : null,
+          ].filter(Boolean) as string[]
+        : [];
       
       schemas.push({
         '@context': 'https://schema.org',
@@ -384,6 +406,8 @@ function resolveSchema(context: SeoContext, meta: ResolvedSeoMeta) {
         headline: meta.title,
         description: meta.description,
         image: meta.og.image || undefined,
+        url: articleUrl,
+        mainEntityOfPage: { '@type': 'WebPage', '@id': articleUrl },
         datePublished: content.published_at 
           ? new Date(content.published_at).toISOString() 
           : undefined,
@@ -394,16 +418,10 @@ function resolveSchema(context: SeoContext, meta: ResolvedSeoMeta) {
           ? {
               '@type': 'Person',
               name: context.author.display_name,
-              description: context.author.bio || undefined,
+              description: authorBio || undefined,
               image: context.author.avatar_url || undefined,
-              url: context.author.website_url || undefined,
-              sameAs: [
-                context.author.twitter_username ? `https://twitter.com/${context.author.twitter_username}` : null,
-                context.author.facebook_url,
-                context.author.linkedin_url,
-                context.author.instagram_username ? `https://instagram.com/${context.author.instagram_username}` : null,
-                context.author.github_username ? `https://github.com/${context.author.github_username}` : null,
-              ].filter(Boolean) as string[],
+              url: authorUrl,
+              ...(sameAs.length > 0 ? { sameAs } : {}),
             }
           : undefined,
         publisher: context.settings?.organization_name

@@ -159,12 +159,16 @@ export async function enrichContentsWithSeo(contents: any[]) {
 export async function getContentBySlugWithSeo(siteId: string, slug: string, type: 'post' | 'page') {
   const supabase = getSupabaseAdmin();
   
-  // Charger le content avec l'auteur
   const { data: content, error } = await supabase
     .from('content')
     .select(`
       *,
-      author:authors!content_new_author_id_fkey(id, display_name, slug, avatar_url, bio)
+      author:authors!content_new_author_id_fkey(
+        id, display_name, slug, avatar_url, bio,
+        website_url, twitter_username, facebook_url,
+        linkedin_url, instagram_username, github_username
+      ),
+      featured_media:media!fk_content_featured_media(url, alt_text, caption)
     `)
     .eq('site_id', siteId)
     .eq('slug', slug)
