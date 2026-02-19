@@ -36,6 +36,8 @@ export default function SiteEditForm({ site }: Props) {
           automation_level: formData.get('automation_level'),
           ambition_level: formData.get('ambition_level'),
           description: formData.get('description'),
+          custom_head_code: formData.get('custom_head_code'),
+          custom_footer_code: formData.get('custom_footer_code'),
         }),
       });
 
@@ -182,6 +184,46 @@ export default function SiteEditForm({ site }: Props) {
                   </span>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Code personnalisé (tracking, vérifications) */}
+        <div className="pt-6 border-t border-gray-700">
+          <h4 className="text-md font-semibold text-white mb-2">Code personnalisé</h4>
+          <p className="text-sm text-gray-400 mb-4">
+            Injectez du code HTML/JS personnalisé dans votre site (Google Analytics, vérifications de domaine, etc.)
+          </p>
+          
+          <div className="space-y-6">
+            <div>
+              <Label htmlFor="custom_head_code">Code dans le &lt;head&gt;</Label>
+              <textarea
+                id="custom_head_code"
+                name="custom_head_code"
+                rows={8}
+                defaultValue={site.custom_head_code || ''}
+                className="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors font-mono text-sm"
+                placeholder="<!-- Google Analytics, vérifications, etc. -->"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Code injecté dans le &lt;head&gt; (Google Search Console, Bing Webmaster, etc.)
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="custom_footer_code">Code avant le &lt;/body&gt;</Label>
+              <textarea
+                id="custom_footer_code"
+                name="custom_footer_code"
+                rows={8}
+                defaultValue={site.custom_footer_code || ''}
+                className="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors font-mono text-sm"
+                placeholder="<!-- Scripts de tracking, widgets de chat, etc. -->"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Code injecté avant la fermeture du &lt;/body&gt; (scripts de tracking, widgets)
+              </p>
             </div>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Script from 'next/script';
 import { getSiteById } from '@/lib/db/queries';
 import { getThemeById } from '@/lib/db/themes-queries';
 import { getMenuByLocation } from '@/lib/db/menus-queries';
@@ -45,43 +46,60 @@ export default async function SiteLayout({ children, params }: LayoutProps) {
   // Si pas de thème, utiliser le layout par défaut sans thème
   if (!theme) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="flex items-center justify-between h-16">
-              <SiteHeader siteName={site.name} />
-              <div className="flex items-center gap-4">
-                <SiteMenu siteId={site.id} location="header" className="hidden md:flex" />
-                <MobileMenu siteName={site.name} menuItems={menuItems} />
+      <>
+        {/* Code personnalisé dans le head */}
+        {(site as any).custom_head_code && (
+          <div dangerouslySetInnerHTML={{ __html: (site as any).custom_head_code }} />
+        )}
+        
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+          <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="flex items-center justify-between h-16">
+                <SiteHeader siteName={site.name} />
+                <div className="flex items-center gap-4">
+                  <SiteMenu siteId={site.id} location="header" className="hidden md:flex" />
+                  <MobileMenu siteName={site.name} menuItems={menuItems} />
+                </div>
               </div>
             </div>
-          </div>
-        </header>
-        <main className="flex-1">{children}</main>
-        <footer className="bg-white border-t border-gray-200 mt-20">
-          <div className="max-w-7xl mx-auto px-6 py-12">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-3">{site.name}</h3>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wider">Navigation</h4>
-                <SiteMenu siteId={site.id} location="footer" />
-              </div>
-              <div className="text-sm text-gray-600">
-                <p className="font-medium">© {new Date().getFullYear()} {site.name}</p>
-                <p className="mt-2">Tous droits réservés</p>
+          </header>
+          <main className="flex-1">{children}</main>
+          <footer className="bg-white border-t border-gray-200 mt-20">
+            <div className="max-w-7xl mx-auto px-6 py-12">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-3">{site.name}</h3>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wider">Navigation</h4>
+                  <SiteMenu siteId={site.id} location="footer" />
+                </div>
+                <div className="text-sm text-gray-600">
+                  <p className="font-medium">© {new Date().getFullYear()} {site.name}</p>
+                  <p className="mt-2">Tous droits réservés</p>
+                </div>
               </div>
             </div>
-          </div>
-        </footer>
-      </div>
+          </footer>
+        </div>
+        
+        {/* Code personnalisé avant la fermeture du body */}
+        {(site as any).custom_footer_code && (
+          <div dangerouslySetInnerHTML={{ __html: (site as any).custom_footer_code }} />
+        )}
+      </>
     );
   }
 
   // Appliquer le thème avec variables CSS
   return (
     <ThemeProvider theme={theme}>
+      {/* Code personnalisé dans le head */}
+      {(site as any).custom_head_code && (
+        <div dangerouslySetInnerHTML={{ __html: (site as any).custom_head_code }} />
+      )}
+      
       <div 
         style={{ 
           backgroundColor: 'var(--color-background)',
@@ -145,6 +163,11 @@ export default async function SiteLayout({ children, params }: LayoutProps) {
           </div>
         </footer>
       </div>
+      
+      {/* Code personnalisé avant la fermeture du body */}
+      {(site as any).custom_footer_code && (
+        <div dangerouslySetInnerHTML={{ __html: (site as any).custom_footer_code }} />
+      )}
     </ThemeProvider>
   );
 }

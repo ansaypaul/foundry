@@ -11,7 +11,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, theme_key, theme_id, theme_config, status, language, country, site_type, automation_level, ambition_level, description } = body;
+    const { name, theme_key, theme_id, theme_config, status, language, country, site_type, automation_level, ambition_level, description, custom_head_code, custom_footer_code } = body;
 
     // Vérifier que le site existe
     const existingSite = await getSiteById(id);
@@ -66,6 +66,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       ...(automation_level && { automation_level }),
       ...(ambition_level && { ambition_level }),
       ...(description !== undefined && { description: description ? description.trim() : null }),
+      ...(custom_head_code !== undefined && { custom_head_code: custom_head_code ? custom_head_code.trim() : null }),
+      ...(custom_footer_code !== undefined && { custom_footer_code: custom_footer_code ? custom_footer_code.trim() : null }),
     });
 
     // Si le thème ou la config a changé, invalider TOUT le cache du site
